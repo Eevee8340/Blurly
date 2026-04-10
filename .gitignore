@@ -45,3 +45,7 @@ ENV/
 
 # Local assets or temporary files
 *.raw
+
+# Documentation
+site/
+.cache/
