@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "blurly"
 version = "0.1.0"
-description = "GPU-accelerated glass blur framework for Windows using D3D11"
+description = "GPU-accelerated glass blur framework for Windows 11 using D3D11"
 readme = "README.md"
 authors = [{name = "Eevee8340"}]
 license = { text = "MIT" }
@@ -16,7 +16,10 @@ classifiers = [
     "Topic :: Multimedia :: Graphics",
 ]
 requires-python = ">=3.8"
-dependencies = [
+dependencies = []
+
+[project.optional-dependencies]
+examples = [
     "PyQt6>=6.0.0",
 ]
 

@@ -15,12 +15,17 @@ import os
 # Add project root to sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from PyQt6.QtWidgets import (
-    QApplication, QWidget, QFrame, QVBoxLayout, QHBoxLayout,
-    QSlider, QLabel, QPushButton, QGridLayout, QButtonGroup, QSizeGrip,
-)
-from PyQt6.QtCore import Qt, QTimer, QPoint, QRect
-from PyQt6.QtGui import QPainter, QColor, QPainterPath
+try:
+    from PyQt6.QtWidgets import (
+        QApplication, QWidget, QFrame, QVBoxLayout, QHBoxLayout,
+        QSlider, QLabel, QPushButton, QGridLayout, QButtonGroup, QSizeGrip,
+    )
+    from PyQt6.QtCore import Qt, QTimer, QPoint, QRect
+    from PyQt6.QtGui import QPainter, QColor, QPainterPath
+except ImportError:
+    print("\nError: PyQt6 is required to run the demo application.")
+    print("To install it, run:  pip install \"blurly[examples]\"\n")
+    sys.exit(1)
 
 from blurly import BlurlyEngine, BlurlyParams, BlurMode, PRESETS
 

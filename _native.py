@@ -6,7 +6,15 @@ use ``blurly.BlurlyEngine`` instead.
 
 import ctypes
 import os
+import sys
 
+# ─── Platform Validation ──────────────────────────────────────────────────
+
+if sys.platform != "win32" or sys.getwindowsversion().build < 22000:
+    raise ImportError(
+        "Blurly requires Windows 11. "
+        "Older versions of Windows or non-Windows systems are not supported."
+    )
 
 class BlurlyError(Exception):
     """Raised when the native engine reports an error."""
