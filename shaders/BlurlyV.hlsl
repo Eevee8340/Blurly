@@ -31,14 +31,15 @@ float4 main(PS_IN input) : SV_Target {
     float totalWeight = 0;
     float blurRadius = BlurStrength / ScreenResolution.y;
     
-    // Standard 9-tap Gaussian approximation
-    float weights[5] = { 0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216 };
+    // 5-tap linear interpolated Gaussian (equivalent to 9-tap)
+    float weights[3] = { 0.227027, 0.316216, 0.070270 };
+    float offsets[3] = { 0.0, 1.384615, 3.230769 };
     
     color += IntermediateTexture.Sample(samLinear, baseUV) * weights[0];
     totalWeight += weights[0];
     
-    for(int i = 1; i < 5; i++) {
-        float offset = float(i) * blurRadius;
+    for(int i = 1; i < 3; i++) {
+        float offset = offsets[i] * blurRadius;
         
         // Dynamic Frost jitter
         float jitter = (BlurType == 1) ? (rand(input.UV + float(i)*1.5) * FrostAmount * blurRadius) : 0;

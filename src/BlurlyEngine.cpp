@@ -62,6 +62,10 @@ struct BlurlyInstance {
     ComPtr<ID3D11PixelShader>        pixelShaderH;
     ComPtr<ID3D11PixelShader>        pixelShaderV;
 
+    // Desktop capture caching
+    ComPtr<ID3D11Texture2D>          lastDeskTex;
+    ComPtr<ID3D11ShaderResourceView> lastDeskSRV;
+
     BlurlyParams params;
     HWND        hwnd;
 };
@@ -401,17 +405,44 @@ void Blurly_Render(void* handle) {
     auto* g = static_cast<BlurlyInstance*>(handle);
     if (!g->deskDupl) return;
 
+    auto* ctx = g->context.Get();
     ComPtr<IDXGIResource> deskRes;
     DXGI_OUTDUPL_FRAME_INFO fi;
     HRESULT hr = g->deskDupl->AcquireNextFrame(0, &fi, &deskRes);
-    if (FAILED(hr)) return;  // no new frame or timeout — skip
 
-    ComPtr<ID3D11Texture2D> deskTex;
-    deskRes.As(&deskTex);
-    ComPtr<ID3D11ShaderResourceView> deskSRV;
-    g->device->CreateShaderResourceView(deskTex.Get(), nullptr, &deskSRV);
-
-    auto* ctx = g->context.Get();
+    if (SUCCEEDED(hr)) {
+        ComPtr<ID3D11Texture2D> deskTex;
+        deskRes.As(&deskTex);
+        
+        D3D11_TEXTURE2D_DESC desc;
+        deskTex->GetDesc(&desc);
+        
+        bool needsNewTexture = true;
+        if (g->lastDeskTex) {
+            D3D11_TEXTURE2D_DESC cachedDesc;
+            g->lastDeskTex->GetDesc(&cachedDesc);
+            if (cachedDesc.Width == desc.Width && cachedDesc.Height == desc.Height && cachedDesc.Format == desc.Format) {
+                needsNewTexture = false;
+            }
+        }
+        
+        if (needsNewTexture) {
+            g->lastDeskTex.Reset();
+            g->lastDeskSRV.Reset();
+            desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+            desc.MiscFlags = 0;
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            g->device->CreateTexture2D(&desc, nullptr, &g->lastDeskTex);
+            g->device->CreateShaderResourceView(g->lastDeskTex.Get(), nullptr, &g->lastDeskSRV);
+        }
+        
+        ctx->CopyResource(g->lastDeskTex.Get(), deskTex.Get());
+        g->deskDupl->ReleaseFrame();
+    } else if (hr == DXGI_ERROR_WAIT_TIMEOUT) {
+        if (!g->lastDeskSRV) return;
+    } else {
+        return;
+    }
 
     // Shared pipeline state
     ctx->IASetInputLayout(g->inputLayout.Get());
@@ -434,18 +465,14 @@ void Blurly_Render(void* handle) {
     D3D11_VIEWPORT vp = { 0, 0, g->params.WindowSize.x, g->params.WindowSize.y, 0, 1 };
     ctx->RSSetViewports(1, &vp);
 
-    float clear[4] = { 0, 0, 0, 0 };
-
     // Pass 1 — Horizontal blur (desktop → intermediate)
-    ctx->ClearRenderTargetView(g->intermediateRTV.Get(), clear);
     ctx->OMSetRenderTargets(1, g->intermediateRTV.GetAddressOf(), nullptr);
     ctx->PSSetShader(g->pixelShaderH.Get(), nullptr, 0);
-    ID3D11ShaderResourceView* srv1[] = { deskSRV.Get(), g->normalMapSRV.Get() };
+    ID3D11ShaderResourceView* srv1[] = { g->lastDeskSRV.Get(), g->normalMapSRV.Get() };
     ctx->PSSetShaderResources(0, 2, srv1);
     ctx->Draw(6, 0);
 
     // Pass 2 — Vertical blur (intermediate → back buffer)
-    ctx->ClearRenderTargetView(g->renderTargetView.Get(), clear);
     ctx->OMSetRenderTargets(1, g->renderTargetView.GetAddressOf(), nullptr);
     ctx->PSSetShader(g->pixelShaderV.Get(), nullptr, 0);
     ID3D11ShaderResourceView* srv2[] = { g->intermediateSRV.Get(), g->normalMapSRV.Get() };
@@ -457,7 +484,6 @@ void Blurly_Render(void* handle) {
     ctx->PSSetShaderResources(0, 2, nul);
 
     g->swapChain->Present(1, 0);
-    g->deskDupl->ReleaseFrame();
 }
 
 // ─── Blurly_GetError ────────────────────────────────────────────────────────────
