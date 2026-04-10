@@ -41,6 +41,10 @@ with BlurlyEngine(hwnd, preset="frost") as glass:
    pip install -e .
    ```
 
+## Documentation
+
+📚 **[View the Official Documentation](https://Eevee8340.github.io/Blurly/)**
+
 ## Requirements
 
 - **OS:** Windows 10/11
