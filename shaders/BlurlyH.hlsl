@@ -34,28 +34,25 @@ float4 main(PS_IN input) : SV_Target {
     
     float2 baseUV = desktopUV + distortion;
 
-    // 3. Multi-Pass Horizontal Blur
-    float4 color = 0;
-    float totalWeight = 0;
+    // 3. Horizontal Blur — 5-tap linear Gaussian (≈ 9-tap)
+    //    Pre-normalized weights sum to 1.0 — no division needed.
+    //    Fully unrolled for zero branch overhead.
     float blurRadius = BlurStrength / ScreenResolution.x;
-    
-    // 5-tap linear interpolated Gaussian (equivalent to 9-tap)
-    float weights[3] = { 0.227027, 0.316216, 0.070270 };
-    float offsets[3] = { 0.0, 1.384615, 3.230769 };
-    
-    color += DesktopTexture.Sample(samLinear, baseUV) * weights[0];
-    totalWeight += weights[0];
-    
-    for(int i = 1; i < 3; i++) {
-        float offset = offsets[i] * blurRadius;
-        
-        // Dynamic Frost jitter
-        float jitter = (BlurType == 1) ? (rand(input.UV + float(i)) * FrostAmount * blurRadius) : 0;
-        
-        color += DesktopTexture.Sample(samLinear, baseUV + float2(offset + jitter, 0)) * weights[i];
-        color += DesktopTexture.Sample(samLinear, baseUV - float2(offset + jitter, 0)) * weights[i];
-        totalWeight += weights[i] * 2.0;
-    }
 
-    return color / totalWeight;
+    // Center tap (weight 0.227027)
+    float4 color = DesktopTexture.Sample(samLinear, baseUV) * 0.227027;
+
+    // Tap 1 — offset 1.384615 (weight 0.316216 per side)
+    float off1 = 1.384615 * blurRadius;
+    float j1 = (BlurType == 1) ? (rand(input.UV + 1.0) * FrostAmount * blurRadius) : 0;
+    color += DesktopTexture.Sample(samLinear, baseUV + float2(off1 + j1, 0)) * 0.316216;
+    color += DesktopTexture.Sample(samLinear, baseUV - float2(off1 + j1, 0)) * 0.316216;
+
+    // Tap 2 — offset 3.230769 (weight 0.070270 per side)
+    float off2 = 3.230769 * blurRadius;
+    float j2 = (BlurType == 1) ? (rand(input.UV + 2.0) * FrostAmount * blurRadius) : 0;
+    color += DesktopTexture.Sample(samLinear, baseUV + float2(off2 + j2, 0)) * 0.070270;
+    color += DesktopTexture.Sample(samLinear, baseUV - float2(off2 + j2, 0)) * 0.070270;
+
+    return color;
 }

@@ -10,6 +10,17 @@ class BlurMode(IntEnum):
     FROST = 1
 
 
+class BlurQuality(IntEnum):
+    """Blur quality / performance trade-off.
+
+    PERFORMANCE uses a half-resolution intermediate render target,
+    processing 4× fewer texels.  The bilinear sampler handles free
+    upscaling in the second pass.  Imperceptible at blur strengths ≥ 3.
+    """
+    PERFORMANCE = 0
+    QUALITY = 1
+
+
 @dataclass
 class BlurlyParams:
     """Parameters controlling the glass effect.

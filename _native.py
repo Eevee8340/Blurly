@@ -57,6 +57,12 @@ _lib.Blurly_SetParams.argtypes = [
 ]
 _lib.Blurly_SetParams.restype = None
 
+# void Blurly_SetConfig(void*, int vsync, int quality, float targetFPS)
+_lib.Blurly_SetConfig.argtypes = [
+    ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_float
+]
+_lib.Blurly_SetConfig.restype = None
+
 # bool Blurly_LoadNormalMap(void*, const char* path)
 _lib.Blurly_LoadNormalMap.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
 _lib.Blurly_LoadNormalMap.restype  = ctypes.c_bool
@@ -64,6 +70,12 @@ _lib.Blurly_LoadNormalMap.restype  = ctypes.c_bool
 # void Blurly_Render(void*)
 _lib.Blurly_Render.argtypes = [ctypes.c_void_p]
 _lib.Blurly_Render.restype  = None
+
+# void Blurly_RenderAt(void*, int x, int y, int w, int h)
+_lib.Blurly_RenderAt.argtypes = [
+    ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int
+]
+_lib.Blurly_RenderAt.restype = None
 
 # const char* Blurly_GetError()
 _lib.Blurly_GetError.argtypes = []

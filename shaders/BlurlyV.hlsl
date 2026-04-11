@@ -26,38 +26,35 @@ float rand(float2 co) {
 float4 main(PS_IN input) : SV_Target {
     float2 baseUV = input.UV;
 
-    // 1. Multi-Pass Vertical Blur
-    float4 color = 0;
-    float totalWeight = 0;
+    // 1. Vertical Blur — 5-tap linear Gaussian (≈ 9-tap)
+    //    Pre-normalized weights sum to 1.0 — no division needed.
+    //    Fully unrolled for zero branch overhead.
     float blurRadius = BlurStrength / ScreenResolution.y;
-    
-    // 5-tap linear interpolated Gaussian (equivalent to 9-tap)
-    float weights[3] = { 0.227027, 0.316216, 0.070270 };
-    float offsets[3] = { 0.0, 1.384615, 3.230769 };
-    
-    color += IntermediateTexture.Sample(samLinear, baseUV) * weights[0];
-    totalWeight += weights[0];
-    
-    for(int i = 1; i < 3; i++) {
-        float offset = offsets[i] * blurRadius;
-        
-        // Dynamic Frost jitter
-        float jitter = (BlurType == 1) ? (rand(input.UV + float(i)*1.5) * FrostAmount * blurRadius) : 0;
-        
-        color += IntermediateTexture.Sample(samLinear, baseUV + float2(0, offset + jitter)) * weights[i];
-        color += IntermediateTexture.Sample(samLinear, baseUV - float2(0, offset + jitter)) * weights[i];
-        totalWeight += weights[i] * 2.0;
-    }
 
-    float4 final = color / totalWeight;
-    
+    // Center tap (weight 0.227027)
+    float4 color = IntermediateTexture.Sample(samLinear, baseUV) * 0.227027;
+
+    // Tap 1 — offset 1.384615 (weight 0.316216 per side)
+    float off1 = 1.384615 * blurRadius;
+    float j1 = (BlurType == 1) ? (rand(input.UV + 1.5) * FrostAmount * blurRadius) : 0;
+    color += IntermediateTexture.Sample(samLinear, baseUV + float2(0, off1 + j1)) * 0.316216;
+    color += IntermediateTexture.Sample(samLinear, baseUV - float2(0, off1 + j1)) * 0.316216;
+
+    // Tap 2 — offset 3.230769 (weight 0.070270 per side)
+    float off2 = 3.230769 * blurRadius;
+    float j2 = (BlurType == 1) ? (rand(input.UV + 3.0) * FrostAmount * blurRadius) : 0;
+    color += IntermediateTexture.Sample(samLinear, baseUV + float2(0, off2 + j2)) * 0.070270;
+    color += IntermediateTexture.Sample(samLinear, baseUV - float2(0, off2 + j2)) * 0.070270;
+
+    float4 final_color = color;
+
     // Add subtle grain overlay if Frost is enabled
     if (BlurType == 1) {
         float noise = rand(input.UV);
-        final.rgb += (noise - 0.5) * FrostAmount * 0.1;
+        final_color.rgb += (noise - 0.5) * FrostAmount * 0.1;
     }
     
     // Force Alpha to 1.0 (some windows need this to be opaque but blurred)
-    final.a = 1.0;
-    return final;
+    final_color.a = 1.0;
+    return final_color;
 }

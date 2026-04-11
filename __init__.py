@@ -14,13 +14,14 @@ Quick start:
 """
 
 from .engine import BlurlyEngine
-from .structs import BlurlyParams, BlurMode
+from .structs import BlurlyParams, BlurMode, BlurQuality
 from .presets import BlurlyPreset, PRESETS, get_preset
 
 __all__ = [
     "BlurlyEngine",
     "BlurlyParams",
     "BlurMode",
+    "BlurQuality",
     "BlurlyPreset",
     "PRESETS",
     "get_preset",
