@@ -25,22 +25,29 @@ You can find the examples in the `examples/` directory of the repository:
 Here is a simplified structure of how to integrate Blurly into an application using a generic render loop:
 
 ```python
-from blurly import BlurlyEngine
+from blurly import BlurlyEngine, BlurQuality
 
 class MyGlassApp:
     def __init__(self, hwnd):
         self.hwnd = hwnd
-        # Initialize the engine
-        self.glass = BlurlyEngine(hwnd, preset="frost")
+        # Initialize the engine with performance settings
+        self.glass = BlurlyEngine(
+            hwnd, 
+            preset="frost", 
+            vsync=False, 
+            quality=BlurQuality.PERFORMANCE, 
+            target_fps=60
+        )
         
-    def on_window_move_or_resize(self, x, y, width, height):
-        # Tell Blurly where the window is now
-        self.glass.update_position(x, y, width, height)
+    def on_performance_mode_toggled(self, quality_mode):
+        # Dynamically change engine configuration
+        self.glass.set_config(quality=quality_mode)
 
-    def render_loop(self):
-        # Call this ~60 times a second
+    def render_loop(self, x, y, width, height):
+        # Call this in your event loop or a timer
+        # render_at combines update_position + render for lower overhead
         if self.glass.alive:
-            self.glass.render()
+            self.glass.render_at(x, y, width, height)
 
     def cleanup(self):
         # Clean up GPU resources when done
