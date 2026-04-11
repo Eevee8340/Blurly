@@ -67,6 +67,9 @@ new_params = BlurlyParams(
     blur_strength=12.0,
     blur_mode=BlurMode.FROST,
     frost_amount=0.6,
+    transparency=0.3,
+    tint_color=(0.2, 0.4, 0.8),
+    edge_highlight=0.4,
 )
 engine.set_params(new_params)
 ```

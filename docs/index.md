@@ -7,7 +7,7 @@ By leveraging **Direct3D 11** and the **Desktop Duplication API**, it captures a
 ## Features
 
 - 🚀 **Hardware Accelerated:** Pure D3D11 implementation for buttery smooth 60+ FPS.
-- 🎨 **Fully Customizable:** Live-update refraction, blur depth, and frost intensity.
+- 🎨 **Fully Customizable:** Live-update refraction, blur depth, frost intensity, transparency, tint color, and edge highlight.
 - 📦 **Preset System:** Comes with built-in styles like *Rain*, *Frost*, and *Ripples*.
 - 🛠️ **Easy Integration:** Simple Pythonic API that works with PyQt6, PySide6, or raw Win32.
 - 🧵 **Multi-Instance:** Run independent glass effects on multiple windows simultaneously.

@@ -152,6 +152,11 @@ class BlurlyEngine:
             params.blur_strength,
             int(params.blur_mode),
             params.frost_amount,
+            params.tint_color[0],
+            params.tint_color[1],
+            params.tint_color[2],
+            params.transparency,
+            params.edge_highlight,
         )
 
     def set_config(

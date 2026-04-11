@@ -51,9 +51,10 @@ _lib.Blurly_UpdatePosition.argtypes = [
 ]
 _lib.Blurly_UpdatePosition.restype = None
 
-# void Blurly_SetParams(void*, float refraction, float blur, int type, float frost)
+# void Blurly_SetParams(void*, float refraction, float blur, int type, float frost, float tint_r, float tint_g, float tint_b, float transparency, float edge_highlight)
 _lib.Blurly_SetParams.argtypes = [
-    ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_float
+    ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_float,
+    ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float
 ]
 _lib.Blurly_SetParams.restype = None
 

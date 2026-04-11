@@ -32,7 +32,10 @@ struct BlurlyGPUParams {
     float BlurStrength;        // 4 bytes
     int BlurType;              // 4 bytes  (0: Gaussian, 1: Frost)
     float FrostAmount;         // 4 bytes
-    XMFLOAT2 Padding;          // 8 bytes  (total 48 = 16-byte aligned)
+    float Transparency;        // 4 bytes
+    float EdgeHighlight;       // 4 bytes
+    XMFLOAT3 TintColor;        // 12 bytes
+    float Padding;             // 4 bytes
 };
 
 struct Vertex {
@@ -217,7 +220,7 @@ extern "C" {
 __declspec(dllexport) void*       Blurly_Create(HWND hwnd, const char* shaderDir, const char* normalMapPath);
 __declspec(dllexport) void        Blurly_Destroy(void* instance);
 __declspec(dllexport) void        Blurly_UpdatePosition(void* instance, int x, int y, int w, int h);
-__declspec(dllexport) void        Blurly_SetParams(void* instance, float refraction, float blur, int type, float frost);
+__declspec(dllexport) void        Blurly_SetParams(void* instance, float refraction, float blur, int type, float frost, float tint_r, float tint_g, float tint_b, float transparency, float edge_highlight);
 __declspec(dllexport) void        Blurly_SetConfig(void* instance, int vsync, int quality, float targetFPS);
 __declspec(dllexport) bool        Blurly_LoadNormalMap(void* instance, const char* path);
 __declspec(dllexport) void        Blurly_Render(void* instance);
@@ -231,7 +234,10 @@ __declspec(dllexport) const char* Blurly_GetError();
 void* Blurly_Create(HWND hwnd, const char* shaderDir, const char* normalMapPath) {
     auto* inst = new BlurlyInstance();
     inst->hwnd      = hwnd;
-    inst->gpuParams = { {0,0}, {800,600}, {1920,1080}, 0.05f, 3.0f, 0, 0.5f, {0,0} };
+    inst->gpuParams = {
+        {0,0}, {800,600}, {1920,1080}, 0.05f, 3.0f, 0, 0.5f,
+        1.0f, 0.0f, {1.0f, 1.0f, 1.0f}, 0.0f
+    };
 
     // Engine config defaults
     inst->vsync       = true;
@@ -426,13 +432,18 @@ void Blurly_UpdatePosition(void* handle, int x, int y, int w, int h) {
 
 // ─── Blurly_SetParams ───────────────────────────────────────────────────────────
 
-void Blurly_SetParams(void* handle, float refraction, float blur, int type, float frost) {
+void Blurly_SetParams(void* handle, float refraction, float blur, int type, float frost,
+                      float tint_r, float tint_g, float tint_b, float transparency,
+                      float edge_highlight) {
     if (!handle) return;
     auto* g = static_cast<BlurlyInstance*>(handle);
     g->gpuParams.RefractionStrength = refraction;
     g->gpuParams.BlurStrength       = blur;
     g->gpuParams.BlurType           = type;
     g->gpuParams.FrostAmount        = frost;
+    g->gpuParams.Transparency       = transparency;
+    g->gpuParams.EdgeHighlight      = edge_highlight;
+    g->gpuParams.TintColor          = { tint_r, tint_g, tint_b };
 }
 
 // ─── Blurly_SetConfig ───────────────────────────────────────────────────────────

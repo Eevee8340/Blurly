@@ -10,7 +10,9 @@ cbuffer Params : register(b0) {
     float BlurStrength;
     int BlurType;
     float FrostAmount;
-    float2 Padding;
+    float Transparency;
+    float EdgeHighlight;
+    float3 TintColor;
 };
 
 struct PS_IN {

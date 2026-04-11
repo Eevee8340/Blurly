@@ -19,6 +19,7 @@ try:
     from PyQt6.QtWidgets import (
         QApplication, QWidget, QFrame, QVBoxLayout, QHBoxLayout,
         QSlider, QLabel, QPushButton, QGridLayout, QButtonGroup, QSizeGrip,
+        QLineEdit,
     )
     from PyQt6.QtCore import Qt, QTimer, QPoint, QRect
     from PyQt6.QtGui import QPainter, QColor, QPainterPath
@@ -137,6 +138,30 @@ class ControlPanel(QWidget):
         self._blur.valueChanged.connect(self._on_params)
         root.addWidget(self._blur)
 
+        # Transparency
+        root.addWidget(self._sec("TRANSPARENCY"))
+        self._alpha = QSlider(Qt.Orientation.Horizontal)
+        self._alpha.setRange(0, 100); self._alpha.setValue(0)
+        self._alpha.valueChanged.connect(self._on_params)
+        root.addWidget(self._alpha)
+
+        # Color
+        root.addWidget(self._sec("COLOR"))
+        self._color_input = QLineEdit()
+        self._color_input.setPlaceholderText("#FFFFFF or rgb(255,255,255)")
+        self._color_input.setText("#FFFFFF")
+        self._color_input.textChanged.connect(self._on_color_changed)
+        self._color_input.setStyleSheet("background: #1e3d6e; color: white; border: 1px solid #4a6fa5; border-radius: 4px; padding: 4px;")
+        self._tint_color = (1.0, 1.0, 1.0)
+        root.addWidget(self._color_input)
+
+        # Edge highlight
+        root.addWidget(self._sec("EDGE HIGHLIGHT"))
+        self._edge = QSlider(Qt.Orientation.Horizontal)
+        self._edge.setRange(0, 100); self._edge.setValue(0)
+        self._edge.valueChanged.connect(self._on_params)
+        root.addWidget(self._edge)
+
         # Blur mode
         root.addSpacing(4)
         root.addWidget(self._sec("STYLE"))
@@ -167,6 +192,31 @@ class ControlPanel(QWidget):
         if key:
             self.engine.apply_preset(key)
 
+    def _on_color_changed(self, text):
+        text = text.strip().lower()
+        try:
+            if text.startswith("#") and len(text) in (4, 7):
+                if len(text) == 4:
+                    r = int(text[1]*2, 16) / 255.0
+                    g = int(text[2]*2, 16) / 255.0
+                    b = int(text[3]*2, 16) / 255.0
+                else:
+                    r = int(text[1:3], 16) / 255.0
+                    g = int(text[3:5], 16) / 255.0
+                    b = int(text[5:7], 16) / 255.0
+                self._tint_color = (r, g, b)
+                self._on_params()
+            elif text.startswith("rgb(") and text.endswith(")"):
+                parts = text[4:-1].split(",")
+                if len(parts) == 3:
+                    r = int(parts[0].strip()) / 255.0
+                    g = int(parts[1].strip()) / 255.0
+                    b = int(parts[2].strip()) / 255.0
+                    self._tint_color = (r, g, b)
+                    self._on_params()
+        except ValueError:
+            pass # Invalid format, ignore
+
     def _on_params(self):
         mode_id = self._mode_grp.checkedId()
         self.engine.set_params(BlurlyParams(
@@ -174,6 +224,9 @@ class ControlPanel(QWidget):
             blur_strength=self._blur.value() / 10.0,
             blur_mode=BlurMode(max(mode_id, 0)),
             frost_amount=0.5,
+            transparency=self._alpha.value() / 100.0,
+            tint_color=self._tint_color,
+            edge_highlight=self._edge.value() / 100.0,
         ))
 
     def track(self):

@@ -10,7 +10,9 @@ cbuffer Params : register(b0) {
     float BlurStrength;
     int BlurType;
     float FrostAmount;
-    float2 Padding;
+    float Transparency;
+    float EdgeHighlight;
+    float3 TintColor;
 };
 
 struct PS_IN {
@@ -54,6 +56,15 @@ float4 main(PS_IN input) : SV_Target {
         final_color.rgb += (noise - 0.5) * FrostAmount * 0.1;
     }
     
+    // Apply Tint
+    final_color.rgb = lerp(final_color.rgb, TintColor, Transparency);
+
+    // Apply Edge Highlight (subtle inner glow at the edges of the window)
+    float2 dist = abs(input.UV - 0.5) * 2.0; // 0.0 at center, 1.0 at edges
+    float edgeMask = max(dist.x, dist.y);
+    edgeMask = pow(edgeMask, 4.0); // push it closer to the edges
+    final_color.rgb += edgeMask * EdgeHighlight;
+
     // Force Alpha to 1.0 (some windows need this to be opaque but blurred)
     final_color.a = 1.0;
     return final_color;

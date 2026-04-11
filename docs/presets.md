@@ -49,5 +49,11 @@ engine.load_normal_map("path/to/my_custom_map.raw")
 
 # Optionally update parameters to match your new map
 from blurly import BlurlyParams
-engine.set_params(BlurlyParams(refraction=0.1, blur_strength=8.0))
+engine.set_params(BlurlyParams(
+    refraction=0.1, 
+    blur_strength=8.0,
+    transparency=0.4,
+    tint_color=(0.1, 0.3, 0.6),
+    edge_highlight=0.2
+))
 ```

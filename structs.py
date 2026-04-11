@@ -26,12 +26,18 @@ class BlurlyParams:
     """Parameters controlling the glass effect.
 
     Attributes:
-        refraction:    Distortion intensity from the normal map.  Range: 0.0 – 0.2
-        blur_strength: Gaussian blur kernel radius in pixels.     Range: 0.0 – 20.0
-        blur_mode:     Algorithm selection (Gaussian or Frost).
-        frost_amount:  Frost noise intensity (only used when blur_mode=FROST). Range: 0.0 – 1.0
+        refraction:     Distortion intensity from the normal map.  Range: 0.0 – 0.2
+        blur_strength:  Gaussian blur kernel radius in pixels.     Range: 0.0 – 20.0
+        blur_mode:      Algorithm selection (Gaussian or Frost).
+        frost_amount:   Frost noise intensity (only used when blur_mode=FROST). Range: 0.0 – 1.0
+        transparency:   Strength of the tint color blending over the blur. Range: 0.0 – 1.0
+        tint_color:     RGB tuple for coloring the glass.
+        edge_highlight: Intensity of the bright edge overlay. Range: 0.0 – 1.0
     """
     refraction: float = 0.04
     blur_strength: float = 5.0
     blur_mode: BlurMode = BlurMode.GAUSSIAN
     frost_amount: float = 0.5
+    transparency: float = 0.0
+    tint_color: tuple[float, float, float] = (1.0, 1.0, 1.0)
+    edge_highlight: float = 0.0
