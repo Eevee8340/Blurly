@@ -192,6 +192,7 @@ class BlurlyWindow(QWidget):
 
     def __init__(self):
         super().__init__()
+        self._interaction_active = False
         self.setWindowTitle("Blurly (Framed)")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setMouseTracking(True)
@@ -208,9 +209,19 @@ class BlurlyWindow(QWidget):
         self._timer.timeout.connect(self._tick)
         self._timer.start(16)
 
+        # Debounce timer to detect when OS drag/resize ends
+        self._interaction_end_timer = QTimer(self)
+        self._interaction_end_timer.setSingleShot(True)
+        self._interaction_end_timer.timeout.connect(self._end_interaction)
+
+    def _end_interaction(self):
+        self._interaction_active = False
+        self.panel.track()    # Final panel sync
+        self._timer.start(16) # Resume timer-driven rendering
+
     # ── Render ────────────────────────────────────────────────────────────────
 
-    def _tick(self):
+    def _tick(self, from_interaction: bool = False):
         if not hasattr(self, "panel"):
             return
 
@@ -225,8 +236,8 @@ class BlurlyWindow(QWidget):
         pw = int(self.width()  * dpr)
         ph = int(self.height() * dpr)
 
-        self.engine.update_position(px, py, pw, ph)
-        self.engine.render()
+        # Single Python→C crossing per frame
+        self.engine.render_at(px, py, pw, ph)
 
     def paintEvent(self, _):
         # Fill the client area with an almost invisible alpha so it catches mouse events
@@ -237,13 +248,27 @@ class BlurlyWindow(QWidget):
     # ── OS Event Hooks ────────────────────────────────────────────────────────
 
     def moveEvent(self, e):
-        # Force a tick during OS window dragging to ensure smoothness
-        self._tick()
+        if not hasattr(self, "_timer"):
+            super().moveEvent(e)
+            return
+
+        if not self._interaction_active:
+            self._interaction_active = True
+            self._timer.stop()    # Let OS move events drive rendering exclusively
+        self._interaction_end_timer.start(100) # Reset debounce
+        self._tick(from_interaction=True)
         super().moveEvent(e)
 
     def resizeEvent(self, e):
-        # Force a tick during OS window resizing to ensure smoothness
-        self._tick()
+        if not hasattr(self, "_timer"):
+            super().resizeEvent(e)
+            return
+
+        if not self._interaction_active:
+            self._interaction_active = True
+            self._timer.stop()    # Let OS resize events drive rendering exclusively
+        self._interaction_end_timer.start(100) # Reset debounce
+        self._tick(from_interaction=True)
         super().resizeEvent(e)
 
     def closeEvent(self, e):
