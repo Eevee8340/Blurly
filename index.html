@@ -435,6 +435,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layered-rendering-ui-overlays" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layered Rendering (UI Overlays)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -597,6 +625,7 @@
 <li>🧵 <strong>Multi-Instance:</strong> Run independent glass effects on multiple windows simultaneously.</li>
 </ul>
 <h2 id="quick-start">Quick Start</h2>
+<h3 id="basic-usage">Basic Usage</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">blurly</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlurlyEngine</span><span class="p">,</span> <span class="n">BlurQuality</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Create the engine for your window (HWND)</span>
@@ -606,18 +635,31 @@
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="c1"># Use render_at for a combined update+render in one C call</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">glass</span><span class="o">.</span><span class="n">render_at</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
 </code></pre></div>
+<h3 id="layered-rendering-ui-overlays">Layered Rendering (UI Overlays)</h3>
+<p>To draw standard UI controls over the blur effect without them being overwritten, use the <code>BlurlyOverlay</code> helper with a second transparent overlay window.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">blurly</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlurlyEngine</span><span class="p">,</span> <span class="n">BlurlyOverlay</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># 1. Setup your two windows (blur host and transparent overlay)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># 2. Extract their HWNDs as integers</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">BlurlyEngine</span><span class="p">(</span><span class="n">blur_hwnd</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">glue</span> <span class="o">=</span> <span class="n">BlurlyOverlay</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">blur_hwnd</span><span class="p">,</span> <span class="n">overlay_hwnd</span><span class="p">)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># 3. In your render loop:</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">glue</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>                   <span class="c1"># Keeps overlay aligned to blur host</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="n">engine</span><span class="o">.</span><span class="n">render_at</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>  <span class="c1"># Renders the blur background</span>
+</code></pre></div>
 <h2 id="installation">Installation</h2>
 <h3 id="from-source">From Source</h3>
 <ol>
 <li>Clone the repository:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Eevee8340/Blurly.git
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>Blurly
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Eevee8340/Blurly.git
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">cd</span><span class="w"> </span>Blurly
 </code></pre></div></li>
 <li>Build the native engine (requires MSVC):
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>./build_engine.bat
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>./build_engine.bat
 </code></pre></div></li>
 <li>Install in editable mode:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </code></pre></div></li>
 </ol>
 <h2 id="requirements">Requirements</h2>
