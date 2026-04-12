@@ -73,3 +73,36 @@ new_params = BlurlyParams(
 )
 engine.set_params(new_params)
 ```
+
+## Layered Rendering (UI Overlays)
+
+By default, Direct3D's `SwapChain::Present()` will overwrite any standard UI elements painted on the same window. To solve this, Blurly provides a toolkit-agnostic **layered rendering architecture**. This allows you to paint your custom UI on a separate overlay window while maintaining the blurred background in a host window.
+
+`BlurlyOverlay` manages the Z-order automatically (making the blur window the owner) and synchronizes the overlay window's position with the blur host using native Win32 calls for zero overhead.
+
+### Implementing an Overlay
+
+1. Create a **host window** to render the blur.
+2. Create a **transparent overlay window** to hold your UI.
+3. Pass their HWNDs to `BlurlyEngine` and `BlurlyOverlay`.
+4. Call `sync()` in your loop to keep the overlay aligned.
+
+```python
+from blurly import BlurlyEngine, BlurlyOverlay
+
+class LayeredGlassApp:
+    def __init__(self, blur_hwnd, overlay_hwnd):
+        # Initialize the engine
+        self.engine = BlurlyEngine(blur_hwnd, preset="frost")
+        
+        # Link the windows so the overlay stays perfectly on top
+        self.glue = BlurlyOverlay(self.engine, blur_hwnd, overlay_hwnd)
+
+    def render_loop(self, x, y, width, height):
+        # 1. Sync overlay window position to the blur host
+        self.glue.sync()
+        
+        # 2. Render the background blur
+        if self.engine.alive:
+            self.engine.render_at(x, y, width, height)
+```

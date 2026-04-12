@@ -45,6 +45,10 @@ _lib.Blurly_Create.restype  = ctypes.c_void_p
 _lib.Blurly_Destroy.argtypes = [ctypes.c_void_p]
 _lib.Blurly_Destroy.restype  = None
 
+# HWND Blurly_GetHwnd(void*)
+_lib.Blurly_GetHwnd.argtypes = [ctypes.c_void_p]
+_lib.Blurly_GetHwnd.restype  = ctypes.c_void_p  # HWND is pointer-sized
+
 # void Blurly_UpdatePosition(void*, int x, int y, int w, int h)
 _lib.Blurly_UpdatePosition.argtypes = [
     ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int

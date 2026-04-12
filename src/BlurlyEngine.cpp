@@ -219,6 +219,7 @@ extern "C" {
 
 __declspec(dllexport) void*       Blurly_Create(HWND hwnd, const char* shaderDir, const char* normalMapPath);
 __declspec(dllexport) void        Blurly_Destroy(void* instance);
+__declspec(dllexport) HWND        Blurly_GetHwnd(void* instance);
 __declspec(dllexport) void        Blurly_UpdatePosition(void* instance, int x, int y, int w, int h);
 __declspec(dllexport) void        Blurly_SetParams(void* instance, float refraction, float blur, int type, float frost, float tint_r, float tint_g, float tint_b, float transparency, float edge_highlight);
 __declspec(dllexport) void        Blurly_SetConfig(void* instance, int vsync, int quality, float targetFPS);
@@ -404,6 +405,17 @@ void* Blurly_Create(HWND hwnd, const char* shaderDir, const char* normalMapPath)
 
 void Blurly_Destroy(void* handle) {
     if (handle) delete static_cast<BlurlyInstance*>(handle);
+}
+
+// ─── Blurly_GetHwnd ─────────────────────────────────────────────────────────────
+//
+// Returns the HWND that was passed to Blurly_Create.  Used by BlurlyOverlay on
+// the Python side to set up the Win32 owner relationship (GWLP_HWNDPARENT) so
+// the overlay window is automatically kept above the blur host in Z-order.
+
+HWND Blurly_GetHwnd(void* handle) {
+    if (!handle) return nullptr;
+    return static_cast<BlurlyInstance*>(handle)->hwnd;
 }
 
 // ─── Blurly_UpdatePosition ─────────────────────────────────────────────────────

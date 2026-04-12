@@ -16,9 +16,11 @@ Quick start:
 from .engine import BlurlyEngine
 from .structs import BlurlyParams, BlurMode, BlurQuality
 from .presets import BlurlyPreset, PRESETS, get_preset
+from .overlay import BlurlyOverlay
 
 __all__ = [
     "BlurlyEngine",
+    "BlurlyOverlay",
     "BlurlyParams",
     "BlurMode",
     "BlurQuality",

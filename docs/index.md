@@ -14,6 +14,8 @@ By leveraging **Direct3D 11** and the **Desktop Duplication API**, it captures a
 
 ## Quick Start
 
+### Basic Usage
+
 ```python
 from blurly import BlurlyEngine, BlurQuality
 
@@ -23,6 +25,23 @@ with BlurlyEngine(hwnd, preset="frost", vsync=False, quality=BlurQuality.PERFORM
     # In your render loop:
     # Use render_at for a combined update+render in one C call
     glass.render_at(x, y, w, h)
+```
+
+### Layered Rendering (UI Overlays)
+
+To draw standard UI controls over the blur effect without them being overwritten, use the `BlurlyOverlay` helper with a second transparent overlay window.
+
+```python
+from blurly import BlurlyEngine, BlurlyOverlay
+
+# 1. Setup your two windows (blur host and transparent overlay)
+# 2. Extract their HWNDs as integers
+engine = BlurlyEngine(blur_hwnd)
+glue = BlurlyOverlay(engine, blur_hwnd, overlay_hwnd)
+
+# 3. In your render loop:
+glue.sync()                   # Keeps overlay aligned to blur host
+engine.render_at(x, y, w, h)  # Renders the blur background
 ```
 
 ## Installation
