@@ -20,9 +20,12 @@ struct PS_IN {
     float2 UV : TEXCOORD;
 };
 
+Texture2D NoiseMap : register(t2);
+SamplerState samWrap : register(s1);
+
 // Pseudo-random noise for Frost
 float rand(float2 co) {
-    return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
+    return NoiseMap.Sample(samWrap, co * ScreenResolution / 512.0).r;
 }
 
 float4 main(PS_IN input) : SV_Target {

@@ -59,7 +59,9 @@ struct BlurlyInstance {
     ComPtr<ID3D11Buffer>             vertexBuffer;
     ComPtr<ID3D11Buffer>             constantBuffer;
     ComPtr<ID3D11SamplerState>       samplerState;
+    ComPtr<ID3D11SamplerState>       samplerWrap;
     ComPtr<ID3D11ShaderResourceView> normalMapSRV;
+    ComPtr<ID3D11ShaderResourceView> noiseMapSRV;
 
     // 2-pass blur intermediate
     ComPtr<ID3D11Texture2D>          intermediateTexture;
@@ -398,6 +400,37 @@ void* Blurly_Create(HWND hwnd, const char* shaderDir, const char* normalMapPath)
         }
     }
 
+    // ── Noise Map ───────────────────────────────────────────────────────────
+    {
+        std::vector<unsigned char> noiseData(512 * 512 * 4);
+        for (size_t i = 0; i < noiseData.size(); ++i) {
+            noiseData[i] = rand() % 256;
+        }
+        D3D11_TEXTURE2D_DESC ndesc = {};
+        ndesc.Width            = 512;
+        ndesc.Height           = 512;
+        ndesc.MipLevels        = 1;
+        ndesc.ArraySize        = 1;
+        ndesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+        ndesc.SampleDesc.Count = 1;
+        ndesc.Usage            = D3D11_USAGE_DEFAULT;
+        ndesc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
+        D3D11_SUBRESOURCE_DATA nsub = { noiseData.data(), 512 * 4, 0 };
+        ComPtr<ID3D11Texture2D> ntex;
+        inst->device->CreateTexture2D(&ndesc, &nsub, &ntex);
+        inst->device->CreateShaderResourceView(ntex.Get(), nullptr, &inst->noiseMapSRV);
+
+        D3D11_SAMPLER_DESC wsd = {};
+        wsd.Filter         = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+        wsd.AddressU       = D3D11_TEXTURE_ADDRESS_WRAP;
+        wsd.AddressV       = D3D11_TEXTURE_ADDRESS_WRAP;
+        wsd.AddressW       = D3D11_TEXTURE_ADDRESS_WRAP;
+        wsd.ComparisonFunc = D3D11_COMPARISON_NEVER;
+        wsd.MinLOD         = 0;
+        wsd.MaxLOD         = D3D11_FLOAT32_MAX;
+        inst->device->CreateSamplerState(&wsd, &inst->samplerWrap);
+    }
+
     return inst;
 }
 
@@ -627,8 +660,8 @@ void Blurly_Render(void* handle) {
     ctx->RSSetViewports(1, &intermediateVP);
     ctx->OMSetRenderTargets(1, g->intermediateRTV.GetAddressOf(), nullptr);
     ctx->PSSetShader(g->pixelShaderH.Get(), nullptr, 0);
-    ID3D11ShaderResourceView* srv1[] = { g->lastDeskSRV.Get(), g->normalMapSRV.Get() };
-    ctx->PSSetShaderResources(0, 2, srv1);
+    ID3D11ShaderResourceView* srv1[] = { g->lastDeskSRV.Get(), g->normalMapSRV.Get(), g->noiseMapSRV.Get() };
+    ctx->PSSetShaderResources(0, 3, srv1);
     ctx->Draw(6, 0);
 
     // ── Pass 2 — Vertical blur + upsample to full resolution ────────────────
@@ -636,13 +669,13 @@ void Blurly_Render(void* handle) {
     ctx->RSSetViewports(1, &fullVP);
     ctx->OMSetRenderTargets(1, g->renderTargetView.GetAddressOf(), nullptr);
     ctx->PSSetShader(g->pixelShaderV.Get(), nullptr, 0);
-    ID3D11ShaderResourceView* srv2[] = { g->intermediateSRV.Get(), g->normalMapSRV.Get() };
-    ctx->PSSetShaderResources(0, 2, srv2);
+    ID3D11ShaderResourceView* srv2[] = { g->intermediateSRV.Get(), g->normalMapSRV.Get(), g->noiseMapSRV.Get() };
+    ctx->PSSetShaderResources(0, 3, srv2);
     ctx->Draw(6, 0);
 
     // Unbind SRVs to avoid D3D11 hazard warnings
-    ID3D11ShaderResourceView* nul[] = { nullptr, nullptr };
-    ctx->PSSetShaderResources(0, 2, nul);
+    ID3D11ShaderResourceView* nul[] = { nullptr, nullptr, nullptr };
+    ctx->PSSetShaderResources(0, 3, nul);
 
     // Present with configurable VSync
     g->swapChain->Present(g->vsync ? 1 : 0, 0);
