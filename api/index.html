@@ -2543,12 +2543,7 @@ overlay_hwnd:
 <span class="normal"><a href="#__codelineno-0-204">204</a></span>
 <span class="normal"><a href="#__codelineno-0-205">205</a></span>
 <span class="normal"><a href="#__codelineno-0-206">206</a></span>
-<span class="normal"><a href="#__codelineno-0-207">207</a></span>
-<span class="normal"><a href="#__codelineno-0-208">208</a></span>
-<span class="normal"><a href="#__codelineno-0-209">209</a></span>
-<span class="normal"><a href="#__codelineno-0-210">210</a></span>
-<span class="normal"><a href="#__codelineno-0-211">211</a></span>
-<span class="normal"><a href="#__codelineno-0-212">212</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-120" name="__codelineno-0-120"></a><span class="k">class</span><span class="w"> </span><span class="nc">BlurlyOverlay</span><span class="p">:</span>
+<span class="normal"><a href="#__codelineno-0-207">207</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-120" name="__codelineno-0-120"></a><span class="k">class</span><span class="w"> </span><span class="nc">BlurlyOverlay</span><span class="p">:</span>
 <a id="__codelineno-0-121" name="__codelineno-0-121"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages Z-order and geometry between a Blurly blur host and an overlay HWND.</span>
 <a id="__codelineno-0-122" name="__codelineno-0-122"></a>
 <a id="__codelineno-0-123" name="__codelineno-0-123"></a><span class="sd">    Both arguments are plain ``int`` HWNDs — no toolkit objects required.</span>
@@ -2602,8 +2597,8 @@ overlay_hwnd:
 <a id="__codelineno-0-171" name="__codelineno-0-171"></a><span class="sd">        Call every frame **before** ``engine.render_at()``.</span>
 <a id="__codelineno-0-172" name="__codelineno-0-172"></a>
 <a id="__codelineno-0-173" name="__codelineno-0-173"></a><span class="sd">        Returns:</span>
-<a id="__codelineno-0-174" name="__codelineno-0-174"></a><span class="sd">            (x, y, w, h): The physical (DPI-scaled) coordinates of the client</span>
-<a id="__codelineno-0-175" name="__codelineno-0-175"></a><span class="sd">            area, ready to be passed directly to ``engine.render_at()``.</span>
+<a id="__codelineno-0-174" name="__codelineno-0-174"></a><span class="sd">            (x, y, w, h): The physical coordinates of the client area,</span>
+<a id="__codelineno-0-175" name="__codelineno-0-175"></a><span class="sd">            ready to be passed directly to ``engine.render_at()``.</span>
 <a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="sd">        &quot;&quot;&quot;</span>
 <a id="__codelineno-0-177" name="__codelineno-0-177"></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">_client_rect_on_screen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_blur_hwnd</span><span class="p">)</span>
 <a id="__codelineno-0-178" name="__codelineno-0-178"></a>        <span class="n">_user32</span><span class="o">.</span><span class="n">SetWindowPos</span><span class="p">(</span>
@@ -2613,34 +2608,29 @@ overlay_hwnd:
 <a id="__codelineno-0-182" name="__codelineno-0-182"></a>            <span class="n">SWP_NOACTIVATE</span><span class="p">,</span>
 <a id="__codelineno-0-183" name="__codelineno-0-183"></a>        <span class="p">)</span>
 <a id="__codelineno-0-184" name="__codelineno-0-184"></a>
-<a id="__codelineno-0-185" name="__codelineno-0-185"></a>        <span class="n">scale</span> <span class="o">=</span> <span class="mf">1.0</span>
-<a id="__codelineno-0-186" name="__codelineno-0-186"></a>        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">_user32</span><span class="p">,</span> <span class="s2">&quot;GetDpiForWindow&quot;</span><span class="p">):</span>
-<a id="__codelineno-0-187" name="__codelineno-0-187"></a>            <span class="n">dpi</span> <span class="o">=</span> <span class="n">_user32</span><span class="o">.</span><span class="n">GetDpiForWindow</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_void_p</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_blur_hwnd</span><span class="p">))</span>
-<a id="__codelineno-0-188" name="__codelineno-0-188"></a>            <span class="n">scale</span> <span class="o">=</span> <span class="n">dpi</span> <span class="o">/</span> <span class="mf">96.0</span>
+<a id="__codelineno-0-185" name="__codelineno-0-185"></a>        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
+<a id="__codelineno-0-186" name="__codelineno-0-186"></a>
+<a id="__codelineno-0-187" name="__codelineno-0-187"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">raise_overlay</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-188" name="__codelineno-0-188"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Explicitly bring the overlay to the top of Z-order.</span>
 <a id="__codelineno-0-189" name="__codelineno-0-189"></a>
-<a id="__codelineno-0-190" name="__codelineno-0-190"></a>        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
-<a id="__codelineno-0-191" name="__codelineno-0-191"></a>
-<a id="__codelineno-0-192" name="__codelineno-0-192"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">raise_overlay</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-193" name="__codelineno-0-193"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Explicitly bring the overlay to the top of Z-order.</span>
-<a id="__codelineno-0-194" name="__codelineno-0-194"></a>
-<a id="__codelineno-0-195" name="__codelineno-0-195"></a><span class="sd">        Normally not needed when the Win32 owner relationship is set, but</span>
-<a id="__codelineno-0-196" name="__codelineno-0-196"></a><span class="sd">        useful after un-minimizing or when another window has covered the</span>
-<a id="__codelineno-0-197" name="__codelineno-0-197"></a><span class="sd">        overlay unexpectedly.</span>
-<a id="__codelineno-0-198" name="__codelineno-0-198"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-199" name="__codelineno-0-199"></a>        <span class="n">_user32</span><span class="o">.</span><span class="n">SetWindowPos</span><span class="p">(</span>
-<a id="__codelineno-0-200" name="__codelineno-0-200"></a>            <span class="n">ctypes</span><span class="o">.</span><span class="n">c_void_p</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_overlay_hwnd</span><span class="p">),</span>
-<a id="__codelineno-0-201" name="__codelineno-0-201"></a>            <span class="n">HWND_TOP</span><span class="p">,</span>
-<a id="__codelineno-0-202" name="__codelineno-0-202"></a>            <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
-<a id="__codelineno-0-203" name="__codelineno-0-203"></a>            <span class="n">SWP_NOMOVE</span> <span class="o">|</span> <span class="n">SWP_NOSIZE</span> <span class="o">|</span> <span class="n">SWP_NOACTIVATE</span><span class="p">,</span>
-<a id="__codelineno-0-204" name="__codelineno-0-204"></a>        <span class="p">)</span>
-<a id="__codelineno-0-205" name="__codelineno-0-205"></a>
-<a id="__codelineno-0-206" name="__codelineno-0-206"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_blur_hwnd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<a id="__codelineno-0-207" name="__codelineno-0-207"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the blur host HWND.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-208" name="__codelineno-0-208"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blur_hwnd</span>
-<a id="__codelineno-0-209" name="__codelineno-0-209"></a>
-<a id="__codelineno-0-210" name="__codelineno-0-210"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_overlay_hwnd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<a id="__codelineno-0-211" name="__codelineno-0-211"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the overlay HWND.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-212" name="__codelineno-0-212"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_overlay_hwnd</span>
+<a id="__codelineno-0-190" name="__codelineno-0-190"></a><span class="sd">        Normally not needed when the Win32 owner relationship is set, but</span>
+<a id="__codelineno-0-191" name="__codelineno-0-191"></a><span class="sd">        useful after un-minimizing or when another window has covered the</span>
+<a id="__codelineno-0-192" name="__codelineno-0-192"></a><span class="sd">        overlay unexpectedly.</span>
+<a id="__codelineno-0-193" name="__codelineno-0-193"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-194" name="__codelineno-0-194"></a>        <span class="n">_user32</span><span class="o">.</span><span class="n">SetWindowPos</span><span class="p">(</span>
+<a id="__codelineno-0-195" name="__codelineno-0-195"></a>            <span class="n">ctypes</span><span class="o">.</span><span class="n">c_void_p</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_overlay_hwnd</span><span class="p">),</span>
+<a id="__codelineno-0-196" name="__codelineno-0-196"></a>            <span class="n">HWND_TOP</span><span class="p">,</span>
+<a id="__codelineno-0-197" name="__codelineno-0-197"></a>            <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-0-198" name="__codelineno-0-198"></a>            <span class="n">SWP_NOMOVE</span> <span class="o">|</span> <span class="n">SWP_NOSIZE</span> <span class="o">|</span> <span class="n">SWP_NOACTIVATE</span><span class="p">,</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a>        <span class="p">)</span>
+<a id="__codelineno-0-200" name="__codelineno-0-200"></a>
+<a id="__codelineno-0-201" name="__codelineno-0-201"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_blur_hwnd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<a id="__codelineno-0-202" name="__codelineno-0-202"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the blur host HWND.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-203" name="__codelineno-0-203"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blur_hwnd</span>
+<a id="__codelineno-0-204" name="__codelineno-0-204"></a>
+<a id="__codelineno-0-205" name="__codelineno-0-205"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_overlay_hwnd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<a id="__codelineno-0-206" name="__codelineno-0-206"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the overlay HWND.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-207" name="__codelineno-0-207"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_overlay_hwnd</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -2673,11 +2663,11 @@ overlay_hwnd:
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>overlay.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-206">206</a></span>
-<span class="normal"><a href="#__codelineno-0-207">207</a></span>
-<span class="normal"><a href="#__codelineno-0-208">208</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-206" name="__codelineno-0-206"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_blur_hwnd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<a id="__codelineno-0-207" name="__codelineno-0-207"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the blur host HWND.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-208" name="__codelineno-0-208"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blur_hwnd</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-201">201</a></span>
+<span class="normal"><a href="#__codelineno-0-202">202</a></span>
+<span class="normal"><a href="#__codelineno-0-203">203</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-201" name="__codelineno-0-201"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_blur_hwnd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<a id="__codelineno-0-202" name="__codelineno-0-202"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the blur host HWND.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-203" name="__codelineno-0-203"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blur_hwnd</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -2700,11 +2690,11 @@ overlay_hwnd:
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>overlay.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-210">210</a></span>
-<span class="normal"><a href="#__codelineno-0-211">211</a></span>
-<span class="normal"><a href="#__codelineno-0-212">212</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-210" name="__codelineno-0-210"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_overlay_hwnd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<a id="__codelineno-0-211" name="__codelineno-0-211"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the overlay HWND.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-212" name="__codelineno-0-212"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_overlay_hwnd</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-205">205</a></span>
+<span class="normal"><a href="#__codelineno-0-206">206</a></span>
+<span class="normal"><a href="#__codelineno-0-207">207</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-205" name="__codelineno-0-205"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_overlay_hwnd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<a id="__codelineno-0-206" name="__codelineno-0-206"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the overlay HWND.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-207" name="__codelineno-0-207"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_overlay_hwnd</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -2730,31 +2720,31 @@ overlay unexpectedly.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>overlay.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-192">192</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-187">187</a></span>
+<span class="normal"><a href="#__codelineno-0-188">188</a></span>
+<span class="normal"><a href="#__codelineno-0-189">189</a></span>
+<span class="normal"><a href="#__codelineno-0-190">190</a></span>
+<span class="normal"><a href="#__codelineno-0-191">191</a></span>
+<span class="normal"><a href="#__codelineno-0-192">192</a></span>
 <span class="normal"><a href="#__codelineno-0-193">193</a></span>
 <span class="normal"><a href="#__codelineno-0-194">194</a></span>
 <span class="normal"><a href="#__codelineno-0-195">195</a></span>
 <span class="normal"><a href="#__codelineno-0-196">196</a></span>
 <span class="normal"><a href="#__codelineno-0-197">197</a></span>
 <span class="normal"><a href="#__codelineno-0-198">198</a></span>
-<span class="normal"><a href="#__codelineno-0-199">199</a></span>
-<span class="normal"><a href="#__codelineno-0-200">200</a></span>
-<span class="normal"><a href="#__codelineno-0-201">201</a></span>
-<span class="normal"><a href="#__codelineno-0-202">202</a></span>
-<span class="normal"><a href="#__codelineno-0-203">203</a></span>
-<span class="normal"><a href="#__codelineno-0-204">204</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-192" name="__codelineno-0-192"></a><span class="k">def</span><span class="w"> </span><span class="nf">raise_overlay</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-193" name="__codelineno-0-193"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Explicitly bring the overlay to the top of Z-order.</span>
-<a id="__codelineno-0-194" name="__codelineno-0-194"></a>
-<a id="__codelineno-0-195" name="__codelineno-0-195"></a><span class="sd">    Normally not needed when the Win32 owner relationship is set, but</span>
-<a id="__codelineno-0-196" name="__codelineno-0-196"></a><span class="sd">    useful after un-minimizing or when another window has covered the</span>
-<a id="__codelineno-0-197" name="__codelineno-0-197"></a><span class="sd">    overlay unexpectedly.</span>
-<a id="__codelineno-0-198" name="__codelineno-0-198"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-199" name="__codelineno-0-199"></a>    <span class="n">_user32</span><span class="o">.</span><span class="n">SetWindowPos</span><span class="p">(</span>
-<a id="__codelineno-0-200" name="__codelineno-0-200"></a>        <span class="n">ctypes</span><span class="o">.</span><span class="n">c_void_p</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_overlay_hwnd</span><span class="p">),</span>
-<a id="__codelineno-0-201" name="__codelineno-0-201"></a>        <span class="n">HWND_TOP</span><span class="p">,</span>
-<a id="__codelineno-0-202" name="__codelineno-0-202"></a>        <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
-<a id="__codelineno-0-203" name="__codelineno-0-203"></a>        <span class="n">SWP_NOMOVE</span> <span class="o">|</span> <span class="n">SWP_NOSIZE</span> <span class="o">|</span> <span class="n">SWP_NOACTIVATE</span><span class="p">,</span>
-<a id="__codelineno-0-204" name="__codelineno-0-204"></a>    <span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-199">199</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-187" name="__codelineno-0-187"></a><span class="k">def</span><span class="w"> </span><span class="nf">raise_overlay</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-188" name="__codelineno-0-188"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Explicitly bring the overlay to the top of Z-order.</span>
+<a id="__codelineno-0-189" name="__codelineno-0-189"></a>
+<a id="__codelineno-0-190" name="__codelineno-0-190"></a><span class="sd">    Normally not needed when the Win32 owner relationship is set, but</span>
+<a id="__codelineno-0-191" name="__codelineno-0-191"></a><span class="sd">    useful after un-minimizing or when another window has covered the</span>
+<a id="__codelineno-0-192" name="__codelineno-0-192"></a><span class="sd">    overlay unexpectedly.</span>
+<a id="__codelineno-0-193" name="__codelineno-0-193"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-194" name="__codelineno-0-194"></a>    <span class="n">_user32</span><span class="o">.</span><span class="n">SetWindowPos</span><span class="p">(</span>
+<a id="__codelineno-0-195" name="__codelineno-0-195"></a>        <span class="n">ctypes</span><span class="o">.</span><span class="n">c_void_p</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_overlay_hwnd</span><span class="p">),</span>
+<a id="__codelineno-0-196" name="__codelineno-0-196"></a>        <span class="n">HWND_TOP</span><span class="p">,</span>
+<a id="__codelineno-0-197" name="__codelineno-0-197"></a>        <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-0-198" name="__codelineno-0-198"></a>        <span class="n">SWP_NOMOVE</span> <span class="o">|</span> <span class="n">SWP_NOSIZE</span> <span class="o">|</span> <span class="n">SWP_NOACTIVATE</span><span class="p">,</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a>    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -2792,7 +2782,7 @@ Call every frame <strong>before</strong> <code>engine.render_at()</code>.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The physical (DPI-scaled) coordinates of the client</p>
+                <p>The physical coordinates of the client area,</p>
               </div>
             </td>
           </tr>
@@ -2802,7 +2792,7 @@ Call every frame <strong>before</strong> <code>engine.render_at()</code>.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>area, ready to be passed directly to <code>engine.render_at()</code>.</p>
+                <p>ready to be passed directly to <code>engine.render_at()</code>.</p>
               </div>
             </td>
           </tr>
@@ -2830,20 +2820,15 @@ Call every frame <strong>before</strong> <code>engine.render_at()</code>.</p>
 <span class="normal"><a href="#__codelineno-0-182">182</a></span>
 <span class="normal"><a href="#__codelineno-0-183">183</a></span>
 <span class="normal"><a href="#__codelineno-0-184">184</a></span>
-<span class="normal"><a href="#__codelineno-0-185">185</a></span>
-<span class="normal"><a href="#__codelineno-0-186">186</a></span>
-<span class="normal"><a href="#__codelineno-0-187">187</a></span>
-<span class="normal"><a href="#__codelineno-0-188">188</a></span>
-<span class="normal"><a href="#__codelineno-0-189">189</a></span>
-<span class="normal"><a href="#__codelineno-0-190">190</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-167" name="__codelineno-0-167"></a><span class="k">def</span><span class="w"> </span><span class="nf">sync</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="normal"><a href="#__codelineno-0-185">185</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-167" name="__codelineno-0-167"></a><span class="k">def</span><span class="w"> </span><span class="nf">sync</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <a id="__codelineno-0-168" name="__codelineno-0-168"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Reposition the overlay to exactly cover the blur host&#39;s client area.</span>
 <a id="__codelineno-0-169" name="__codelineno-0-169"></a>
 <a id="__codelineno-0-170" name="__codelineno-0-170"></a><span class="sd">    Uses Win32 ``GetClientRect`` + ``ClientToScreen`` — no toolkit calls.</span>
 <a id="__codelineno-0-171" name="__codelineno-0-171"></a><span class="sd">    Call every frame **before** ``engine.render_at()``.</span>
 <a id="__codelineno-0-172" name="__codelineno-0-172"></a>
 <a id="__codelineno-0-173" name="__codelineno-0-173"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-174" name="__codelineno-0-174"></a><span class="sd">        (x, y, w, h): The physical (DPI-scaled) coordinates of the client</span>
-<a id="__codelineno-0-175" name="__codelineno-0-175"></a><span class="sd">        area, ready to be passed directly to ``engine.render_at()``.</span>
+<a id="__codelineno-0-174" name="__codelineno-0-174"></a><span class="sd">        (x, y, w, h): The physical coordinates of the client area,</span>
+<a id="__codelineno-0-175" name="__codelineno-0-175"></a><span class="sd">        ready to be passed directly to ``engine.render_at()``.</span>
 <a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="sd">    &quot;&quot;&quot;</span>
 <a id="__codelineno-0-177" name="__codelineno-0-177"></a>    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">_client_rect_on_screen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_blur_hwnd</span><span class="p">)</span>
 <a id="__codelineno-0-178" name="__codelineno-0-178"></a>    <span class="n">_user32</span><span class="o">.</span><span class="n">SetWindowPos</span><span class="p">(</span>
@@ -2853,12 +2838,7 @@ Call every frame <strong>before</strong> <code>engine.render_at()</code>.</p>
 <a id="__codelineno-0-182" name="__codelineno-0-182"></a>        <span class="n">SWP_NOACTIVATE</span><span class="p">,</span>
 <a id="__codelineno-0-183" name="__codelineno-0-183"></a>    <span class="p">)</span>
 <a id="__codelineno-0-184" name="__codelineno-0-184"></a>
-<a id="__codelineno-0-185" name="__codelineno-0-185"></a>    <span class="n">scale</span> <span class="o">=</span> <span class="mf">1.0</span>
-<a id="__codelineno-0-186" name="__codelineno-0-186"></a>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">_user32</span><span class="p">,</span> <span class="s2">&quot;GetDpiForWindow&quot;</span><span class="p">):</span>
-<a id="__codelineno-0-187" name="__codelineno-0-187"></a>        <span class="n">dpi</span> <span class="o">=</span> <span class="n">_user32</span><span class="o">.</span><span class="n">GetDpiForWindow</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_void_p</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_blur_hwnd</span><span class="p">))</span>
-<a id="__codelineno-0-188" name="__codelineno-0-188"></a>        <span class="n">scale</span> <span class="o">=</span> <span class="n">dpi</span> <span class="o">/</span> <span class="mf">96.0</span>
-<a id="__codelineno-0-189" name="__codelineno-0-189"></a>
-<a id="__codelineno-0-190" name="__codelineno-0-190"></a>    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
+<a id="__codelineno-0-185" name="__codelineno-0-185"></a>    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
