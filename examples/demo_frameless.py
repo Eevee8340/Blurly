@@ -321,7 +321,6 @@ class BlurlyWindow(QWidget):
 
         self._drag_active = False
         self._drag_origin = QPoint()
-        self._interaction_active = False   # True during drag or resize
 
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._tick)
@@ -329,7 +328,7 @@ class BlurlyWindow(QWidget):
 
     # ── Render ────────────────────────────────────────────────────────────────
 
-    def _tick(self, from_interaction: bool = False):
+    def _tick(self):
         if not hasattr(self, "panel"):
             return
 
@@ -383,17 +382,9 @@ class BlurlyWindow(QWidget):
             self._resize_edges = edges
             self._resize_start_geo = self.geometry()
             self._resize_start_global = e.globalPosition().toPoint()
-            self._interaction_active = True
-            self._timer.stop()    # Let move events drive rendering exclusively
-            self.engine.set_freeze_capture(True)
-            self.engine.set_config(vsync=False)
         elif in_title:
             self._drag_active = True
             self._drag_origin = e.globalPosition().toPoint() - self.frameGeometry().topLeft()
-            self._interaction_active = True
-            self._timer.stop()    # Let move events drive rendering exclusively
-            self.engine.set_freeze_capture(True)
-            self.engine.set_config(vsync=False)
 
     def mouseMoveEvent(self, e):
         pos = e.position().toPoint()
@@ -423,11 +414,9 @@ class BlurlyWindow(QWidget):
                 new_h = max(min_h, geo.height() + delta.y())
 
             self.setGeometry(new_x, new_y, new_w, new_h)
-            self._tick(from_interaction=True)
             
         elif getattr(self, "_drag_active", False):
             self.move(e.globalPosition().toPoint() - self._drag_origin)
-            self._tick(from_interaction=True)
         else:
             # Update cursor hint for hovering
             edges, in_title = self._hit_test(pos)
@@ -439,16 +428,9 @@ class BlurlyWindow(QWidget):
                 self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def mouseReleaseEvent(self, e):
-        was_interacting = self._interaction_active
         self._drag_active = False
         self._resize_edges = ""
-        self._interaction_active = False
         self.setCursor(Qt.CursorShape.ArrowCursor)
-        if was_interacting:
-            self.engine.set_freeze_capture(False)
-            self.engine.set_config(vsync=True)
-            self.overlay.sync()    # Final panel sync
-            self._timer.start(16) # Resume timer-driven rendering
 
     # ── Paint a thin title bar hint (D3D11 will draw the blurred bg) ──────────
 

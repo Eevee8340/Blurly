@@ -162,6 +162,9 @@ class BlurlyOverlay:
             ctypes.c_void_p(self._blur_hwnd),
         )
 
+        # Tell the native engine about our overlay so it can sync it during resize
+        self._engine.attach_overlay(self._overlay_hwnd)
+
     # ── Public API ─────────────────────────────────────────────────────────────
 
     def sync(self) -> tuple[int, int, int, int]:

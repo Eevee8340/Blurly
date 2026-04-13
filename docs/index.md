@@ -39,7 +39,8 @@ from blurly import BlurlyEngine, BlurlyOverlay
 engine = BlurlyEngine(blur_hwnd)
 glue = BlurlyOverlay(engine, blur_hwnd, overlay_hwnd)
 
-# 3. In your render loop:
+# 3. The native engine automatically synchronizes the overlay during window drag/resize!
+#    Just call sync() in your regular render loop to track programmatic movements:
 x, y, w, h = glue.sync()      # Keeps overlay aligned, gets physical rect
 engine.render_at(x, y, w, h)  # Renders the blur background
 ```

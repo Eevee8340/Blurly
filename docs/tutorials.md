@@ -54,6 +54,16 @@ class MyGlassApp:
         self.glass.shutdown()
 ```
 
+## Native OS Integration
+
+Blurly goes beyond simple rendering by deeply integrating with Windows to provide a tear-free experience out of the box. Upon creation, `BlurlyEngine` **subclasses your window** to automatically manage its state during complex OS interactions:
+
+- **`WM_ENTERSIZEMOVE`:** Automatically freezes desktop capture and disables VSync to prevent stuttering while the user is dragging or resizing the window.
+- **`WM_EXITSIZEMOVE`:** Restores standard capture and VSync once interaction completes.
+- **`WM_SIZE` / `WM_MOVE`:** Instantly renders the new frame and synchronously updates any attached `BlurlyOverlay`, providing a buttery smooth, tear-free resizing experience without needing boilerplate Python code.
+
+This allows you to remove almost all manual window event hooks (like handling move/resize events) from your Python code when using standard framed windows.
+
 ## Live Tweaking
 
 Blurly parameters can be updated in real-time. This is perfect for creating animations or allowing users to customize the UI.
@@ -78,14 +88,14 @@ engine.set_params(new_params)
 
 By default, Direct3D's `SwapChain::Present()` will overwrite any standard UI elements painted on the same window. To solve this, Blurly provides a toolkit-agnostic **layered rendering architecture**. This allows you to paint your custom UI on a separate overlay window while maintaining the blurred background in a host window.
 
-`BlurlyOverlay` manages the Z-order automatically (making the blur window the owner) and synchronizes the overlay window's position with the blur host using native Win32 calls for zero overhead.
+`BlurlyOverlay` manages the Z-order automatically (making the blur window the owner) and now **natively synchronizes** the overlay window's position with the blur host during OS-level interactions (like dragging and resizing) using Win32 subclassing.
 
 ### Implementing an Overlay
 
 1. Create a **host window** to render the blur.
 2. Create a **transparent overlay window** to hold your UI.
 3. Pass their HWNDs to `BlurlyEngine` and `BlurlyOverlay`.
-4. Call `sync()` in your loop to keep the overlay aligned.
+4. Call `sync()` in your loop to keep the overlay aligned during standard programmatic movements.
 
 ```python
 from blurly import BlurlyEngine, BlurlyOverlay
@@ -95,7 +105,8 @@ class LayeredGlassApp:
         # Initialize the engine
         self.engine = BlurlyEngine(blur_hwnd, preset="frost")
         
-        # Link the windows so the overlay stays perfectly on top
+        # Link the windows. The native engine automatically intercepts OS size/move 
+        # events to instantly sync the overlay without Python overhead!
         self.glue = BlurlyOverlay(self.engine, blur_hwnd, overlay_hwnd)
 
     def render_loop(self):

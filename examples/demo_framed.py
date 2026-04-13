@@ -301,7 +301,6 @@ class BlurlyWindow(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._interaction_active = False
         self.setWindowTitle("Blurly (Framed)")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setMouseTracking(True)
@@ -313,39 +312,25 @@ class BlurlyWindow(QWidget):
         # Tool window panel — own HWND, Qt paints it independently of D3D11
         self.panel = ControlPanel(self, self.engine)
         self.panel.show()
+        
+        # We need the overlay to sync the panel. Wait, demo_framed doesn't use BlurlyOverlay currently,
+        # it just manually calls panel.track() in python! We should use BlurlyOverlay so C++ syncs it.
+        # Let's import BlurlyOverlay and set it up.
+        from blurly import BlurlyOverlay
+        self.overlay = BlurlyOverlay(self.engine, int(self.winId()), int(self.panel.winId()))
 
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._tick)
         self._timer.start(16)
 
-        # Debounce timer to detect when OS drag/resize ends
-        self._interaction_end_timer = QTimer(self)
-        self._interaction_end_timer.setSingleShot(True)
-        self._interaction_end_timer.timeout.connect(self._end_interaction)
-
-    def _end_interaction(self):
-        self._interaction_active = False
-        self.engine.set_freeze_capture(False)
-        self.engine.set_config(vsync=True)
-        self.panel.track()    # Final panel sync
-        self._timer.start(16) # Resume timer-driven rendering
-
     # ── Render ────────────────────────────────────────────────────────────────
 
-    def _tick(self, from_interaction: bool = False):
+    def _tick(self):
         if not hasattr(self, "panel"):
             return
 
-        dpr   = self.devicePixelRatio()
-        orig  = self.mapToGlobal(QPoint(0, 0))
-
-        # Keep panel anchored to our exact geometry
-        self.panel.track()
-
-        px = int(orig.x() * dpr)
-        py = int(orig.y() * dpr)
-        pw = int(self.width()  * dpr)
-        ph = int(self.height() * dpr)
+        # Keep panel anchored to our exact geometry and get physical coordinates
+        px, py, pw, ph = self.overlay.sync()
 
         # Single Python→C crossing per frame
         self.engine.render_at(px, py, pw, ph)
@@ -355,73 +340,6 @@ class BlurlyWindow(QWidget):
         # instead of letting clicks pass completely through the window to the desktop.
         p = QPainter(self)
         p.fillRect(self.rect(), QColor(0, 0, 0, 1))
-
-    # ── OS Event Hooks ────────────────────────────────────────────────────────
-
-    def nativeEvent(self, eventType, message):
-        msg = ctypes.wintypes.MSG.from_address(message.__int__())
-        if msg.message == 0x0046:  # WM_WINDOWPOSCHANGING
-            wp = WINDOWPOS.from_address(msg.lParam)
-            
-            # SWP_NOMOVE = 0x0002, SWP_NOSIZE = 0x0001
-            if not (wp.flags & 0x0002) or not (wp.flags & 0x0001):
-                if not self._interaction_active:
-                    self._interaction_active = True
-                    self._timer.stop()
-                    self.engine.set_freeze_capture(True)
-                    self.engine.set_config(vsync=False)
-                
-                self._interaction_end_timer.start(100) # Reset debounce
-                
-                fg = self.frameGeometry()
-                client_orig = self.mapToGlobal(QPoint(0, 0))
-                
-                margin_left = client_orig.x() - fg.x()
-                margin_top = client_orig.y() - fg.y()
-                
-                new_cx = wp.x + margin_left
-                new_cy = wp.y + margin_top
-                
-                new_cw = wp.cx - (fg.width() - self.width())
-                new_ch = wp.cy - (fg.height() - self.height())
-                
-                dpr = self.devicePixelRatio()
-                px = int(new_cx * dpr)
-                py = int(new_cy * dpr)
-                pw = int(new_cw * dpr)
-                ph = int(new_ch * dpr)
-                
-                self.engine.render_at(px, py, pw, ph)
-                
-        return super().nativeEvent(eventType, message)
-
-    def moveEvent(self, e):
-        if not hasattr(self, "_timer"):
-            super().moveEvent(e)
-            return
-
-        if not self._interaction_active:
-            self._interaction_active = True
-            self._timer.stop()    # Let OS move events drive rendering exclusively
-            self.engine.set_freeze_capture(True)
-            self.engine.set_config(vsync=False)
-        self._interaction_end_timer.start(100) # Reset debounce
-        self._tick(from_interaction=True)
-        super().moveEvent(e)
-
-    def resizeEvent(self, e):
-        if not hasattr(self, "_timer"):
-            super().resizeEvent(e)
-            return
-
-        if not self._interaction_active:
-            self._interaction_active = True
-            self._timer.stop()    # Let OS resize events drive rendering exclusively
-            self.engine.set_freeze_capture(True)
-            self.engine.set_config(vsync=False)
-        self._interaction_end_timer.start(100) # Reset debounce
-        self._tick(from_interaction=True)
-        super().resizeEvent(e)
 
     def closeEvent(self, e):
         self.panel.close()

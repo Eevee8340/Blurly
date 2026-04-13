@@ -136,6 +136,11 @@ class BlurlyEngine:
         """Current FPS cap (0 = unlimited)."""
         return self._target_fps
 
+    def attach_overlay(self, overlay_hwnd: int) -> None:
+        """Register the overlay HWND with the engine so it can sync natively during resizing."""
+        if self._handle:
+            _lib.Blurly_AttachOverlay(self._handle, overlay_hwnd)
+
     def update_position(self, x: int, y: int, w: int, h: int) -> None:
         """Update the glass region in **physical (DPI-scaled) pixels**."""
         if self._handle:

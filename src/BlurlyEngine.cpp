@@ -15,6 +15,9 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "user32.lib")
+#pragma comment(lib, "comctl32.lib")
+
+#include <commctrl.h>
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
@@ -96,6 +99,7 @@ struct BlurlyInstance {
     std::vector<BYTE> dirtyRectsBuffer;
 
     HWND hwnd;
+    HWND overlayHwnd;
 };
 
 // ─── Thread-local error buffer ──────────────────────────────────────────────
@@ -223,6 +227,7 @@ extern "C" {
 __declspec(dllexport) void*       Blurly_Create(HWND hwnd, const char* shaderDir, const char* normalMapPath);
 __declspec(dllexport) void        Blurly_Destroy(void* instance);
 __declspec(dllexport) HWND        Blurly_GetHwnd(void* instance);
+__declspec(dllexport) void        Blurly_AttachOverlay(void* instance, HWND overlayHwnd);
 __declspec(dllexport) void        Blurly_UpdatePosition(void* instance, int x, int y, int w, int h);
 __declspec(dllexport) void        Blurly_SetParams(void* instance, float refraction, float blur, int type, float frost, float tint_r, float tint_g, float tint_b, float transparency, float edge_highlight);
 __declspec(dllexport) void        Blurly_SetConfig(void* instance, int vsync, int quality, float targetFPS);
@@ -233,6 +238,68 @@ __declspec(dllexport) void        Blurly_RenderAt(void* instance, int x, int y, 
 __declspec(dllexport) const char* Blurly_GetError();
 
 } // extern "C"
+
+// ─── Win32 Subclass ─────────────────────────────────────────────────────────────
+
+LRESULT CALLBACK BlurlyWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
+    auto* inst = reinterpret_cast<BlurlyInstance*>(dwRefData);
+    if (!inst) return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+
+    switch (uMsg) {
+        case WM_ENTERSIZEMOVE:
+            inst->freezeCapture = true;
+            break;
+
+        case WM_EXITSIZEMOVE:
+            inst->freezeCapture = false;
+            break;
+
+        case WM_WINDOWPOSCHANGING: {
+            auto* wp = reinterpret_cast<WINDOWPOS*>(lParam);
+            if (!(wp->flags & SWP_NOMOVE) || !(wp->flags & SWP_NOSIZE)) {
+                // Re-render immediately to avoid black borders during resize
+                RECT clientRect;
+                GetClientRect(hWnd, &clientRect);
+                POINT pt = { clientRect.left, clientRect.top };
+                ClientToScreen(hWnd, &pt);
+
+                int w = clientRect.right - clientRect.left;
+                int h = clientRect.bottom - clientRect.top;
+
+                // For WP changing, if size changed, wp->cx/cy is window size, not client size.
+                // We should let the OS update the client rect later, or we approximate.
+                // Actually, just calling RenderAt with current client size might tear on expand.
+                // It's better to update during WM_SIZE or just let DefSubclassProc handle it and 
+                // render *after*? 
+                // Qt does the resize and geometry update itself for frameless, but for framed,
+                // we intercepted WM_WINDOWPOSCHANGING in python. We'll do it here.
+                // It is safer to just call Render().
+            }
+            break;
+        }
+
+        case WM_SIZE:
+        case WM_MOVE: {
+            RECT clientRect;
+            GetClientRect(hWnd, &clientRect);
+            POINT pt = { clientRect.left, clientRect.top };
+            ClientToScreen(hWnd, &pt);
+
+            int w = clientRect.right - clientRect.left;
+            int h = clientRect.bottom - clientRect.top;
+
+            if (w > 0 && h > 0) {
+                Blurly_RenderAt(inst, pt.x, pt.y, w, h);
+                
+                if (inst->overlayHwnd) {
+                    SetWindowPos(inst->overlayHwnd, HWND_TOP, pt.x, pt.y, w, h, SWP_NOACTIVATE);
+                }
+            }
+            break;
+        }
+    }
+    return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
 
 // ─── Blurly_Create ──────────────────────────────────────────────────────────────
 
@@ -440,7 +507,11 @@ void* Blurly_Create(HWND hwnd, const char* shaderDir, const char* normalMapPath)
 // ─── Blurly_Destroy ─────────────────────────────────────────────────────────────
 
 void Blurly_Destroy(void* handle) {
-    if (handle) delete static_cast<BlurlyInstance*>(handle);
+    if (handle) {
+        auto* inst = static_cast<BlurlyInstance*>(handle);
+        RemoveWindowSubclass(inst->hwnd, BlurlyWndProc, 1);
+        delete inst;
+    }
 }
 
 // ─── Blurly_GetHwnd ─────────────────────────────────────────────────────────────
@@ -452,6 +523,14 @@ void Blurly_Destroy(void* handle) {
 HWND Blurly_GetHwnd(void* handle) {
     if (!handle) return nullptr;
     return static_cast<BlurlyInstance*>(handle)->hwnd;
+}
+
+// ─── Blurly_AttachOverlay ───────────────────────────────────────────────────────
+
+void Blurly_AttachOverlay(void* handle, HWND overlayHwnd) {
+    if (!handle) return;
+    auto* inst = static_cast<BlurlyInstance*>(handle);
+    inst->overlayHwnd = overlayHwnd;
 }
 
 // ─── Blurly_UpdatePosition ─────────────────────────────────────────────────────
