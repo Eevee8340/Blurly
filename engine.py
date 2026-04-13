@@ -192,6 +192,12 @@ class BlurlyEngine:
             float(self._target_fps),
         )
 
+    def set_freeze_capture(self, freeze: bool) -> None:
+        """Skip desktop capture updates during drag/resize for realtime performance."""
+        if not self._handle:
+            return
+        _lib.Blurly_SetFreezeCapture(self._handle, int(freeze))
+
     def apply_preset(self, preset: str | BlurlyPreset) -> None:
         """Switch to a named preset or a custom ``BlurlyPreset``.
 

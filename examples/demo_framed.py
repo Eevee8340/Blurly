@@ -325,6 +325,8 @@ class BlurlyWindow(QWidget):
 
     def _end_interaction(self):
         self._interaction_active = False
+        self.engine.set_freeze_capture(False)
+        self.engine.set_config(vsync=True)
         self.panel.track()    # Final panel sync
         self._timer.start(16) # Resume timer-driven rendering
 
@@ -356,6 +358,43 @@ class BlurlyWindow(QWidget):
 
     # ── OS Event Hooks ────────────────────────────────────────────────────────
 
+    def nativeEvent(self, eventType, message):
+        msg = ctypes.wintypes.MSG.from_address(message.__int__())
+        if msg.message == 0x0046:  # WM_WINDOWPOSCHANGING
+            wp = WINDOWPOS.from_address(msg.lParam)
+            
+            # SWP_NOMOVE = 0x0002, SWP_NOSIZE = 0x0001
+            if not (wp.flags & 0x0002) or not (wp.flags & 0x0001):
+                if not self._interaction_active:
+                    self._interaction_active = True
+                    self._timer.stop()
+                    self.engine.set_freeze_capture(True)
+                    self.engine.set_config(vsync=False)
+                
+                self._interaction_end_timer.start(100) # Reset debounce
+                
+                fg = self.frameGeometry()
+                client_orig = self.mapToGlobal(QPoint(0, 0))
+                
+                margin_left = client_orig.x() - fg.x()
+                margin_top = client_orig.y() - fg.y()
+                
+                new_cx = wp.x + margin_left
+                new_cy = wp.y + margin_top
+                
+                new_cw = wp.cx - (fg.width() - self.width())
+                new_ch = wp.cy - (fg.height() - self.height())
+                
+                dpr = self.devicePixelRatio()
+                px = int(new_cx * dpr)
+                py = int(new_cy * dpr)
+                pw = int(new_cw * dpr)
+                ph = int(new_ch * dpr)
+                
+                self.engine.render_at(px, py, pw, ph)
+                
+        return super().nativeEvent(eventType, message)
+
     def moveEvent(self, e):
         if not hasattr(self, "_timer"):
             super().moveEvent(e)
@@ -364,6 +403,8 @@ class BlurlyWindow(QWidget):
         if not self._interaction_active:
             self._interaction_active = True
             self._timer.stop()    # Let OS move events drive rendering exclusively
+            self.engine.set_freeze_capture(True)
+            self.engine.set_config(vsync=False)
         self._interaction_end_timer.start(100) # Reset debounce
         self._tick(from_interaction=True)
         super().moveEvent(e)
@@ -376,6 +417,8 @@ class BlurlyWindow(QWidget):
         if not self._interaction_active:
             self._interaction_active = True
             self._timer.stop()    # Let OS resize events drive rendering exclusively
+            self.engine.set_freeze_capture(True)
+            self.engine.set_config(vsync=False)
         self._interaction_end_timer.start(100) # Reset debounce
         self._tick(from_interaction=True)
         super().resizeEvent(e)

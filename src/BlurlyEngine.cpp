@@ -81,6 +81,7 @@ struct BlurlyInstance {
     bool  vsync;        // VSync on Present (default: true)
     int   quality;      // 0 = performance (half-res intermediate), 1 = quality (full-res)
     float targetFPS;    // Max FPS cap; 0 = unlimited (default: 0)
+    bool  freezeCapture; // Skip desktop capture and reuse last texture
 
     // Frame pacing state
     LARGE_INTEGER perfFreq;
@@ -225,6 +226,7 @@ __declspec(dllexport) HWND        Blurly_GetHwnd(void* instance);
 __declspec(dllexport) void        Blurly_UpdatePosition(void* instance, int x, int y, int w, int h);
 __declspec(dllexport) void        Blurly_SetParams(void* instance, float refraction, float blur, int type, float frost, float tint_r, float tint_g, float tint_b, float transparency, float edge_highlight);
 __declspec(dllexport) void        Blurly_SetConfig(void* instance, int vsync, int quality, float targetFPS);
+__declspec(dllexport) void        Blurly_SetFreezeCapture(void* instance, int freeze);
 __declspec(dllexport) bool        Blurly_LoadNormalMap(void* instance, const char* path);
 __declspec(dllexport) void        Blurly_Render(void* instance);
 __declspec(dllexport) void        Blurly_RenderAt(void* instance, int x, int y, int w, int h);
@@ -247,6 +249,7 @@ void* Blurly_Create(HWND hwnd, const char* shaderDir, const char* normalMapPath)
     inst->quality     = 1;       // Full quality by default
     inst->targetFPS   = 0.0f;    // Unlimited
     inst->hasRendered = false;
+    inst->freezeCapture = false;
 
     // Frame pacing init
     QueryPerformanceFrequency(&inst->perfFreq);
@@ -516,6 +519,12 @@ void Blurly_SetConfig(void* handle, int vsync, int quality, float targetFPS) {
     }
 }
 
+void Blurly_SetFreezeCapture(void* handle, int freeze) {
+    if (!handle) return;
+    auto* g = static_cast<BlurlyInstance*>(handle);
+    g->freezeCapture = (freeze != 0);
+}
+
 // ─── Blurly_LoadNormalMap ───────────────────────────────────────────────────────
 
 bool Blurly_LoadNormalMap(void* handle, const char* path) {
@@ -546,7 +555,11 @@ void Blurly_Render(void* handle) {
     auto* ctx = g->context.Get();
     ComPtr<IDXGIResource> deskRes;
     DXGI_OUTDUPL_FRAME_INFO fi;
-    HRESULT hr = g->deskDupl->AcquireNextFrame(0, &fi, &deskRes);
+    HRESULT hr = DXGI_ERROR_WAIT_TIMEOUT;
+    
+    if (!g->freezeCapture) {
+        hr = g->deskDupl->AcquireNextFrame(0, &fi, &deskRes);
+    }
 
     if (SUCCEEDED(hr)) {
         ComPtr<ID3D11Texture2D> deskTex;

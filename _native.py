@@ -68,6 +68,10 @@ _lib.Blurly_SetConfig.argtypes = [
 ]
 _lib.Blurly_SetConfig.restype = None
 
+# void Blurly_SetFreezeCapture(void*, int freeze)
+_lib.Blurly_SetFreezeCapture.argtypes = [ctypes.c_void_p, ctypes.c_int]
+_lib.Blurly_SetFreezeCapture.restype = None
+
 # bool Blurly_LoadNormalMap(void*, const char* path)
 _lib.Blurly_LoadNormalMap.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
 _lib.Blurly_LoadNormalMap.restype  = ctypes.c_bool
