@@ -171,8 +171,8 @@ class BlurlyOverlay:
         Call every frame **before** ``engine.render_at()``.
 
         Returns:
-            (x, y, w, h): The physical (DPI-scaled) coordinates of the client
-            area, ready to be passed directly to ``engine.render_at()``.
+            (x, y, w, h): The physical coordinates of the client area,
+            ready to be passed directly to ``engine.render_at()``.
         """
         x, y, w, h = _client_rect_on_screen(self._blur_hwnd)
         _user32.SetWindowPos(
@@ -182,12 +182,7 @@ class BlurlyOverlay:
             SWP_NOACTIVATE,
         )
 
-        scale = 1.0
-        if hasattr(_user32, "GetDpiForWindow"):
-            dpi = _user32.GetDpiForWindow(ctypes.c_void_p(self._blur_hwnd))
-            scale = dpi / 96.0
-
-        return int(x * scale), int(y * scale), int(w * scale), int(h * scale)
+        return x, y, w, h
 
     def raise_overlay(self) -> None:
         """Explicitly bring the overlay to the top of Z-order.

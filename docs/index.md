@@ -63,6 +63,6 @@ engine.render_at(x, y, w, h)  # Renders the blur background
 
 ## Requirements
 
-- **OS:** Windows 10/11
+- **OS:** Windows 11 (build 22000+)
 - **Python:** 3.8+
 - **Graphics:** DirectX 11 compatible GPU

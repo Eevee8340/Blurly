@@ -49,7 +49,7 @@ with BlurlyEngine(hwnd, preset="frost", vsync=False, quality=BlurQuality.PERFORM
 
 ## Requirements
 
-- **OS:** Windows 10/11
+- **OS:** Windows 11 (build 22000+)
 - **Python:** 3.8+
 - **Graphics:** DirectX 11 compatible GPU
 

@@ -28,7 +28,7 @@ except ImportError:
     print("To install it, run:  pip install \"blurly[examples]\"\n")
     sys.exit(1)
 
-from blurly import BlurlyEngine, BlurlyParams, BlurMode, PRESETS
+from blurly import BlurlyEngine, BlurlyParams, BlurMode, PRESETS, BlurlyOverlay
 
 
 # ── Control Panel ─────────────────────────────────────────────────────────────
@@ -314,6 +314,8 @@ class BlurlyWindow(QWidget):
         self.panel = ControlPanel(self, self.engine)
         self.panel.show()
 
+        self.overlay = BlurlyOverlay(self.engine, int(self.winId()), int(self.panel.winId()))
+
         self._resizing = False
         self._resize_corner_px = 20   # px from corner that trigger resize
 
@@ -331,16 +333,8 @@ class BlurlyWindow(QWidget):
         if not hasattr(self, "panel"):
             return
 
-        dpr   = self.devicePixelRatio()
-        orig  = self.mapToGlobal(QPoint(0, 0))
-
-        # Keep panel anchored to our exact geometry
-        self.panel.track()
-
-        px = int(orig.x() * dpr)
-        py = int(orig.y() * dpr)
-        pw = int(self.width()  * dpr)
-        ph = int(self.height() * dpr)
+        # Keep panel anchored to our exact geometry and get physical coordinates
+        px, py, pw, ph = self.overlay.sync()
 
         # Single Python→C crossing per frame
         self.engine.render_at(px, py, pw, ph)
@@ -447,7 +441,7 @@ class BlurlyWindow(QWidget):
         self._interaction_active = False
         self.setCursor(Qt.CursorShape.ArrowCursor)
         if was_interacting:
-            self.panel.track()    # Final panel sync
+            self.overlay.sync()    # Final panel sync
             self._timer.start(16) # Resume timer-driven rendering
 
     # ── Paint a thin title bar hint (D3D11 will draw the blurred bg) ──────────
