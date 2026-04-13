@@ -44,8 +44,8 @@ Usage (toolkit-agnostic)::
     glue    = BlurlyOverlay(engine, blur_hwnd, overlay_hwnd)
 
     # ── Every frame tick ──
-    glue.sync()                            # reposition overlay over blur host
-    engine.render_at(x, y, w, h)          # render blurred desktop
+    x, y, w, h = glue.sync()               # reposition overlay, get physical rect
+    engine.render_at(x, y, w, h)           # render blurred desktop
 """
 
 from __future__ import annotations
@@ -78,6 +78,11 @@ _user32.SetWindowPos.restype = ctypes.wintypes.BOOL
 # LONG_PTR SetWindowLongPtrW(HWND, int nIndex, LONG_PTR dwNewLong)
 _user32.SetWindowLongPtrW.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p]
 _user32.SetWindowLongPtrW.restype  = ctypes.c_void_p
+
+# UINT GetDpiForWindow(HWND hwnd)
+if hasattr(_user32, "GetDpiForWindow"):
+    _user32.GetDpiForWindow.argtypes = [ctypes.c_void_p]
+    _user32.GetDpiForWindow.restype = ctypes.c_uint
 
 # ── Win32 constants ────────────────────────────────────────────────────────────
 
@@ -159,11 +164,15 @@ class BlurlyOverlay:
 
     # ── Public API ─────────────────────────────────────────────────────────────
 
-    def sync(self) -> None:
+    def sync(self) -> tuple[int, int, int, int]:
         """Reposition the overlay to exactly cover the blur host's client area.
 
         Uses Win32 ``GetClientRect`` + ``ClientToScreen`` — no toolkit calls.
         Call every frame **before** ``engine.render_at()``.
+
+        Returns:
+            (x, y, w, h): The physical (DPI-scaled) coordinates of the client
+            area, ready to be passed directly to ``engine.render_at()``.
         """
         x, y, w, h = _client_rect_on_screen(self._blur_hwnd)
         _user32.SetWindowPos(
@@ -172,6 +181,13 @@ class BlurlyOverlay:
             x, y, w, h,
             SWP_NOACTIVATE,
         )
+
+        scale = 1.0
+        if hasattr(_user32, "GetDpiForWindow"):
+            dpi = _user32.GetDpiForWindow(ctypes.c_void_p(self._blur_hwnd))
+            scale = dpi / 96.0
+
+        return int(x * scale), int(y * scale), int(w * scale), int(h * scale)
 
     def raise_overlay(self) -> None:
         """Explicitly bring the overlay to the top of Z-order.
