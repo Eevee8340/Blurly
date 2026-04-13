@@ -98,9 +98,9 @@ class LayeredGlassApp:
         # Link the windows so the overlay stays perfectly on top
         self.glue = BlurlyOverlay(self.engine, blur_hwnd, overlay_hwnd)
 
-    def render_loop(self, x, y, width, height):
-        # 1. Sync overlay window position to the blur host
-        self.glue.sync()
+    def render_loop(self):
+        # 1. Sync overlay window position, get physical rect
+        x, y, width, height = self.glue.sync()
         
         # 2. Render the background blur
         if self.engine.alive:

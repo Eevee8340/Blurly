@@ -40,7 +40,7 @@ engine = BlurlyEngine(blur_hwnd)
 glue = BlurlyOverlay(engine, blur_hwnd, overlay_hwnd)
 
 # 3. In your render loop:
-glue.sync()                   # Keeps overlay aligned to blur host
+x, y, w, h = glue.sync()      # Keeps overlay aligned, gets physical rect
 engine.render_at(x, y, w, h)  # Renders the blur background
 ```
 
