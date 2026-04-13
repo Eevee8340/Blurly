@@ -13,6 +13,7 @@ cbuffer Params : register(b0) {
     float Transparency;
     float EdgeHighlight;
     float3 TintColor;
+    float Padding;
 };
 
 struct PS_IN {

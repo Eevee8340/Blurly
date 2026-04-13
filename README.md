@@ -23,6 +23,7 @@ from blurly import BlurlyEngine, BlurQuality
 with BlurlyEngine(hwnd, preset="frost", vsync=False, quality=BlurQuality.PERFORMANCE, target_fps=60) as glass:
     # In your render loop:
     # Use render_at for a combined update+render in one C call
+    # x, y, w, h are physical pixels
     glass.render_at(x, y, w, h)
 ```
 
