@@ -484,10 +484,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#native-os-integration" class="md-nav__link">
+  <a href="#window-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Native OS Integration
+        Window Integration
       
     </span>
   </a>
@@ -622,7 +622,7 @@
 <p>This means you need to:
 1. Provide Blurly with your window handle (HWND).
 2. Tell Blurly where your window is located on the screen so it captures the correct background.
-3. Call <code>render()</code> repeatedly in your application's render loop or via a timer.</p>
+3. Call <code>render()</code> or <code>render_at()</code> repeatedly in your application's render loop or via a timer.</p>
 <h2 id="examples">Examples</h2>
 <p>The easiest way to learn how to use Blurly is by looking at the provided examples. Blurly comes with examples showing how to integrate it with <strong>PyQt6</strong>.</p>
 <p>You can find the examples in the <code>examples/</code> directory of the repository:</p>
@@ -631,43 +631,35 @@
 <li><a href="https://github.com/Eevee8340/Blurly/blob/main/examples/demo_frameless.py"><code>examples/demo_frameless.py</code></a>: Demonstrates how to use Blurly on a modern, frameless window.</li>
 </ul>
 <h3 id="basic-integration-structure">Basic Integration Structure</h3>
-<p>Here is a simplified structure of how to integrate Blurly into an application using a generic render loop:</p>
+<p>Here is a simplified structure of how to integrate Blurly into an application using a standard render loop and the context manager (<code>with</code> statement) to automatically manage GPU resources:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">blurly</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlurlyEngine</span><span class="p">,</span> <span class="n">BlurQuality</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyGlassApp</span><span class="p">:</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hwnd</span><span class="p">):</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">hwnd</span> <span class="o">=</span> <span class="n">hwnd</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="c1"># Initialize the engine with performance settings</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">glass</span> <span class="o">=</span> <span class="n">BlurlyEngine</span><span class="p">(</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>            <span class="n">hwnd</span><span class="p">,</span> 
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>            <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;frost&quot;</span><span class="p">,</span> 
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>            <span class="n">vsync</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>            <span class="n">quality</span><span class="o">=</span><span class="n">BlurQuality</span><span class="o">.</span><span class="n">PERFORMANCE</span><span class="p">,</span> 
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>            <span class="n">target_fps</span><span class="o">=</span><span class="mi">60</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="p">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_glass_app</span><span class="p">(</span><span class="n">hwnd</span><span class="p">):</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="c1"># Initialize the engine with performance settings</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="c1"># The &#39;with&#39; statement ensures shutdown() is called automatically</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="k">with</span> <span class="n">BlurlyEngine</span><span class="p">(</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        <span class="n">hwnd</span><span class="p">,</span> 
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;frost&quot;</span><span class="p">,</span> 
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        <span class="n">vsync</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        <span class="n">quality</span><span class="o">=</span><span class="n">BlurQuality</span><span class="o">.</span><span class="n">PERFORMANCE</span><span class="p">,</span> 
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="n">target_fps</span><span class="o">=</span><span class="mi">60</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="p">)</span> <span class="k">as</span> <span class="n">glass</span><span class="p">:</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">on_performance_mode_toggled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quality_mode</span><span class="p">):</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="c1"># Dynamically change engine configuration</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">glass</span><span class="o">.</span><span class="n">set_config</span><span class="p">(</span><span class="n">quality</span><span class="o">=</span><span class="n">quality_mode</span><span class="p">)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>            <span class="c1"># Emulate an event loop updating x, y, width, height</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">get_window_rect</span><span class="p">(</span><span class="n">hwnd</span><span class="p">)</span>
 <a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">render_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="c1"># Call this in your event loop or a timer</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="c1"># render_at combines update_position + render for lower overhead</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">glass</span><span class="o">.</span><span class="n">alive</span><span class="p">:</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">glass</span><span class="o">.</span><span class="n">render_at</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        <span class="c1"># Clean up GPU resources when done</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">glass</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>            <span class="c1"># render_at combines update_position + render for lower overhead</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>            <span class="k">if</span> <span class="n">glass</span><span class="o">.</span><span class="n">alive</span><span class="p">:</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>                <span class="n">glass</span><span class="o">.</span><span class="n">render_at</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">60</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="native-os-integration">Native OS Integration</h2>
-<p>Blurly goes beyond simple rendering by deeply integrating with Windows to provide a tear-free experience out of the box. Upon creation, <code>BlurlyEngine</code> <strong>subclasses your window</strong> to automatically manage its state during complex OS interactions:</p>
-<ul>
-<li><strong><code>WM_ENTERSIZEMOVE</code>:</strong> Automatically freezes desktop capture and disables VSync to prevent stuttering while the user is dragging or resizing the window.</li>
-<li><strong><code>WM_EXITSIZEMOVE</code>:</strong> Restores standard capture and VSync once interaction completes.</li>
-<li><strong><code>WM_SIZE</code> / <code>WM_MOVE</code>:</strong> Instantly renders the new frame and synchronously updates any attached <code>BlurlyOverlay</code>, providing a buttery smooth, tear-free resizing experience without needing boilerplate Python code.</li>
-</ul>
-<p>This allows you to remove almost all manual window event hooks (like handling move/resize events) from your Python code when using standard framed windows.</p>
+<h2 id="window-integration">Window Integration</h2>
+<p>When working with Windows applications, dragging and resizing windows requires synchronizing the blur effect and updating positions. </p>
+<p>To provide a smooth experience, you should hook into standard OS events (like <code>WM_MOVE</code> and <code>WM_SIZE</code> or framework equivalents like PyQt's <code>moveEvent</code> and <code>resizeEvent</code>) and call <code>render_at()</code> or <code>update_position()</code> to keep the blur aligned with the screen. </p>
+<p>Additionally, you can use <code>set_freeze_capture(True)</code> during drag/resize events to skip desktop capture updates temporarily, which improves performance and reduces stuttering while the user is actively interacting with the window.</p>
 <h2 id="live-tweaking">Live Tweaking</h2>
 <p>Blurly parameters can be updated in real-time. This is perfect for creating animations or allowing users to customize the UI.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">blurly</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlurlyParams</span><span class="p">,</span> <span class="n">BlurMode</span>
@@ -686,32 +678,28 @@
 </code></pre></div>
 <h2 id="layered-rendering-ui-overlays">Layered Rendering (UI Overlays)</h2>
 <p>By default, Direct3D's <code>SwapChain::Present()</code> will overwrite any standard UI elements painted on the same window. To solve this, Blurly provides a toolkit-agnostic <strong>layered rendering architecture</strong>. This allows you to paint your custom UI on a separate overlay window while maintaining the blurred background in a host window.</p>
-<p><code>BlurlyOverlay</code> manages the Z-order automatically (making the blur window the owner) and now <strong>natively synchronizes</strong> the overlay window's position with the blur host during OS-level interactions (like dragging and resizing) using Win32 subclassing.</p>
+<p><code>BlurlyOverlay</code> helps manage this relationship. It provides a <code>sync()</code> method to align the overlay with the host window.</p>
 <h3 id="implementing-an-overlay">Implementing an Overlay</h3>
 <ol>
 <li>Create a <strong>host window</strong> to render the blur.</li>
 <li>Create a <strong>transparent overlay window</strong> to hold your UI.</li>
 <li>Pass their HWNDs to <code>BlurlyEngine</code> and <code>BlurlyOverlay</code>.</li>
-<li>Call <code>sync()</code> in your loop to keep the overlay aligned during standard programmatic movements.</li>
+<li>Hook into window move/resize events and call <code>sync()</code> to keep the overlay aligned.</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">blurly</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlurlyEngine</span><span class="p">,</span> <span class="n">BlurlyOverlay</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">LayeredGlassApp</span><span class="p">:</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blur_hwnd</span><span class="p">,</span> <span class="n">overlay_hwnd</span><span class="p">):</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>        <span class="c1"># Initialize the engine</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">BlurlyEngine</span><span class="p">(</span><span class="n">blur_hwnd</span><span class="p">,</span> <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;frost&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_layered_app</span><span class="p">(</span><span class="n">blur_hwnd</span><span class="p">,</span> <span class="n">overlay_hwnd</span><span class="p">):</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="c1"># Initialize the engine</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="k">with</span> <span class="n">BlurlyEngine</span><span class="p">(</span><span class="n">blur_hwnd</span><span class="p">,</span> <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;frost&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">engine</span><span class="p">:</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>        <span class="n">glue</span> <span class="o">=</span> <span class="n">BlurlyOverlay</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">blur_hwnd</span><span class="p">,</span> <span class="n">overlay_hwnd</span><span class="p">)</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>        <span class="c1"># Link the windows. The native engine automatically intercepts OS size/move </span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>        <span class="c1"># events to instantly sync the overlay without Python overhead!</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">glue</span> <span class="o">=</span> <span class="n">BlurlyOverlay</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="n">blur_hwnd</span><span class="p">,</span> <span class="n">overlay_hwnd</span><span class="p">)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>            <span class="c1"># 1. Sync overlay window position, get physical rect</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">glue</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">render_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>        <span class="c1"># 1. Sync overlay window position, get physical rect</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">glue</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>        <span class="c1"># 2. Render the background blur</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">alive</span><span class="p">:</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">render_at</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>            <span class="c1"># 2. Render the background blur</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>            <span class="k">if</span> <span class="n">engine</span><span class="o">.</span><span class="n">alive</span><span class="p">:</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>                <span class="n">engine</span><span class="o">.</span><span class="n">render_at</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
 </code></pre></div>
 
 

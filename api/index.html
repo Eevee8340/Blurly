@@ -497,10 +497,77 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#blurly_1" class="md-nav__link">
+  <a href="#blurlyengine" class="md-nav__link">
     <span class="md-ellipsis">
       
-        blurly
+        BlurlyEngine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BlurlyEngine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#properties-read-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Properties (Read-Only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blurlyoverlay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BlurlyOverlay
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BlurlyOverlay">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#methods_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blurly-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        blurly Module
       
     </span>
   </a>
@@ -895,8 +962,43 @@
 
 
 <h1 id="api-reference">API Reference</h1>
-<p>This section provides detailed documentation for the Python API, automatically generated from the source code.</p>
-<h2 id="blurly_1"><code>blurly</code></h2>
+<p>This section provides detailed documentation for the Python API.</p>
+<h2 id="blurlyengine"><code>BlurlyEngine</code></h2>
+<p>The main class for managing the GPU-accelerated glass blur effect.</p>
+<h3 id="properties-read-only">Properties (Read-Only)</h3>
+<ul>
+<li><strong><code>alive</code></strong>: <code>bool</code> - <code>True</code> while the native instance is active.</li>
+<li><strong><code>params</code></strong>: <code>BlurlyParams</code> - Currently active parameters.</li>
+<li><strong><code>vsync</code></strong>: <code>bool</code> - Whether VSync is enabled.</li>
+<li><strong><code>quality</code></strong>: <code>BlurQuality</code> - Current quality level.</li>
+<li><strong><code>target_fps</code></strong>: <code>float</code> - Current FPS cap (0 = unlimited).</li>
+</ul>
+<h3 id="methods">Methods</h3>
+<ul>
+<li><strong><code>__init__(hwnd: int, preset: str | BlurlyPreset = 'ripples', *, vsync: bool = True, quality: BlurQuality = BlurQuality.QUALITY, target_fps: float = 0)</code></strong>: Creates a new instance.</li>
+<li><strong><code>attach_overlay(overlay_hwnd: int) -&gt; None</code></strong>: Register an overlay HWND to sync natively.</li>
+<li><strong><code>update_position(x: int, y: int, w: int, h: int) -&gt; None</code></strong>: Update the glass region in physical pixels.</li>
+<li><strong><code>set_params(params: BlurlyParams) -&gt; None</code></strong>: Live-update blur parameters.</li>
+<li><strong><code>set_config(*, vsync: bool | None, quality: BlurQuality | None, target_fps: float | None) -&gt; None</code></strong>: Update engine configuration.</li>
+<li><strong><code>set_freeze_capture(freeze: bool) -&gt; None</code></strong>: Skip desktop capture updates during drag/resize for realtime performance.</li>
+<li><strong><code>apply_preset(preset: str | BlurlyPreset) -&gt; None</code></strong>: Switch to a named preset or a custom <code>BlurlyPreset</code>.</li>
+<li><strong><code>load_normal_map(path: str) -&gt; None</code></strong>: Load a custom <code>.raw</code> normal map from an arbitrary path.</li>
+<li><strong><code>render() -&gt; None</code></strong>: Render one frame.</li>
+<li><strong><code>render_at(x: int, y: int, w: int, h: int) -&gt; None</code></strong>: Combined position update and render.</li>
+<li><strong><code>shutdown() -&gt; None</code></strong>: Release all GPU resources.</li>
+</ul>
+<p><em>Note: <code>BlurlyEngine</code> supports the context manager protocol (<code>with</code> statement) for automatic shutdown.</em></p>
+<h2 id="blurlyoverlay"><code>BlurlyOverlay</code></h2>
+<p>Helper class to manage transparent UI overlays on top of the blur window.</p>
+<h3 id="methods_1">Methods</h3>
+<ul>
+<li><strong><code>__init__(engine: BlurlyEngine, blur_hwnd: int, overlay_hwnd: int)</code></strong></li>
+<li><strong><code>sync() -&gt; tuple[int, int, int, int]</code></strong>: Synchronize overlay position with blur host and return physical rect <code>(x, y, w, h)</code>.</li>
+<li><strong><code>raise_overlay() -&gt; None</code></strong>: Brings the overlay window to the top.</li>
+<li><strong><code>get_blur_hwnd() -&gt; int</code></strong>: Returns the blur window handle.</li>
+<li><strong><code>get_overlay_hwnd() -&gt; int</code></strong>: Returns the overlay window handle.</li>
+</ul>
+<h2 id="blurly-module"><code>blurly</code> Module</h2>
 
 
 <div class="doc doc-object doc-module">

@@ -516,6 +516,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#helper-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Helper Function
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -526,6 +537,17 @@
     <span class="md-ellipsis">
       
         Custom Presets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blurlyparams-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BlurlyParams Configuration
       
     </span>
   </a>
@@ -605,12 +627,19 @@
 <p>Pass the name of the preset to the constructor:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">blurly</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlurlyEngine</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">BlurlyEngine</span><span class="p">(</span><span class="n">hwnd</span><span class="p">,</span> <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;rain&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">with</span> <span class="n">BlurlyEngine</span><span class="p">(</span><span class="n">hwnd</span><span class="p">,</span> <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;rain&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">engine</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="k">pass</span>
 </code></pre></div>
 <h3 id="at-runtime">At Runtime</h3>
 <p>Use the <code>apply_preset()</code> method to switch styles instantly:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Change from rain to frost</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">engine</span><span class="o">.</span><span class="n">apply_preset</span><span class="p">(</span><span class="s2">&quot;frost&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="helper-function">Helper Function</h3>
+<p>You can retrieve preset objects directly using <code>get_preset(name)</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">blurly</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_preset</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">my_preset</span> <span class="o">=</span> <span class="n">get_preset</span><span class="p">(</span><span class="s2">&quot;frost&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">my_preset</span><span class="o">.</span><span class="n">normal_map_path</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="custom-presets">Custom Presets</h2>
 <p>While Blurly comes with built-in presets, you can easily load custom normal maps for entirely new effects.</p>
@@ -618,18 +647,29 @@
 <li>Ensure your normal map is a 512x512 RGBA <code>.raw</code> file (1,048,576 bytes).</li>
 <li>Load it at runtime:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">load_normal_map</span><span class="p">(</span><span class="s2">&quot;path/to/my_custom_map.raw&quot;</span><span class="p">)</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># Optionally update parameters to match your new map</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">blurly</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlurlyParams</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">engine</span><span class="o">.</span><span class="n">set_params</span><span class="p">(</span><span class="n">BlurlyParams</span><span class="p">(</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">refraction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> 
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">blur_strength</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">transparency</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">tint_color</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">),</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">edge_highlight</span><span class="o">=</span><span class="mf">0.2</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">load_normal_map</span><span class="p">(</span><span class="s2">&quot;path/to/my_custom_map.raw&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Optionally update parameters to match your new map</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">blurly</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlurlyParams</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">engine</span><span class="o">.</span><span class="n">set_params</span><span class="p">(</span><span class="n">BlurlyParams</span><span class="p">(</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">refraction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> 
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">blur_strength</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="n">transparency</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="n">tint_color</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">),</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="n">edge_highlight</span><span class="o">=</span><span class="mf">0.2</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="p">))</span>
 </code></pre></div>
+<h2 id="blurlyparams-configuration">BlurlyParams Configuration</h2>
+<p>When customizing presets or engine parameters at runtime, you can configure the <code>BlurlyParams</code> object. Here are the available fields:</p>
+<ul>
+<li><strong><code>refraction</code></strong> (<code>float</code>): Strength of the normal map distortion. Default is <code>0.04</code>.</li>
+<li><strong><code>blur_strength</code></strong> (<code>float</code>): Intensity of the background blur. Default is <code>5.0</code>.</li>
+<li><strong><code>blur_mode</code></strong> (<code>BlurMode</code>): Either <code>BlurMode.GAUSSIAN</code> or <code>BlurMode.FROST</code>.</li>
+<li><strong><code>frost_amount</code></strong> (<code>float</code>): Intensity of the frost noise overlay. Default is <code>0.5</code>.</li>
+<li><strong><code>transparency</code></strong> (<code>float</code>): Mix between the blurred background and normal background. Default is <code>0.0</code>.</li>
+<li><strong><code>tint_color</code></strong> (<code>tuple[float, float, float]</code>): RGB tint color (0.0 to 1.0). Default is <code>(1.0, 1.0, 1.0)</code>.</li>
+<li><strong><code>edge_highlight</code></strong> (<code>float</code>): Brightness added to the edges. Default is <code>0.0</code>.</li>
+</ul>
 
 
 
