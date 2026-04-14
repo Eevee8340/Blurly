@@ -25,7 +25,8 @@ Pass the name of the preset to the constructor:
 ```python
 from blurly import BlurlyEngine
 
-engine = BlurlyEngine(hwnd, preset="rain")
+with BlurlyEngine(hwnd, preset="rain") as engine:
+    pass
 ```
 
 ### At Runtime
@@ -35,6 +36,16 @@ Use the `apply_preset()` method to switch styles instantly:
 ```python
 # Change from rain to frost
 engine.apply_preset("frost")
+```
+
+### Helper Function
+
+You can retrieve preset objects directly using `get_preset(name)`:
+
+```python
+from blurly import get_preset
+my_preset = get_preset("frost")
+print(my_preset.normal_map_path)
 ```
 
 ## Custom Presets
@@ -57,3 +68,15 @@ engine.set_params(BlurlyParams(
     edge_highlight=0.2
 ))
 ```
+
+## BlurlyParams Configuration
+
+When customizing presets or engine parameters at runtime, you can configure the `BlurlyParams` object. Here are the available fields:
+
+*   **`refraction`** (`float`): Strength of the normal map distortion. Default is `0.04`.
+*   **`blur_strength`** (`float`): Intensity of the background blur. Default is `5.0`.
+*   **`blur_mode`** (`BlurMode`): Either `BlurMode.GAUSSIAN` or `BlurMode.FROST`.
+*   **`frost_amount`** (`float`): Intensity of the frost noise overlay. Default is `0.5`.
+*   **`transparency`** (`float`): Mix between the blurred background and normal background. Default is `0.0`.
+*   **`tint_color`** (`tuple[float, float, float]`): RGB tint color (0.0 to 1.0). Default is `(1.0, 1.0, 1.0)`.
+*   **`edge_highlight`** (`float`): Brightness added to the edges. Default is `0.0`.

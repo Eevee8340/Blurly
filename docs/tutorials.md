@@ -9,7 +9,7 @@ Blurly works by creating an independent Direct3D 11 device and swap chain for yo
 This means you need to:
 1. Provide Blurly with your window handle (HWND).
 2. Tell Blurly where your window is located on the screen so it captures the correct background.
-3. Call `render()` repeatedly in your application's render loop or via a timer.
+3. Call `render()` or `render_at()` repeatedly in your application's render loop or via a timer.
 
 ## Examples
 
@@ -22,47 +22,41 @@ You can find the examples in the `examples/` directory of the repository:
 
 ### Basic Integration Structure
 
-Here is a simplified structure of how to integrate Blurly into an application using a generic render loop:
+Here is a simplified structure of how to integrate Blurly into an application using a standard render loop and the context manager (`with` statement) to automatically manage GPU resources:
 
 ```python
 from blurly import BlurlyEngine, BlurQuality
+import time
 
-class MyGlassApp:
-    def __init__(self, hwnd):
-        self.hwnd = hwnd
-        # Initialize the engine with performance settings
-        self.glass = BlurlyEngine(
-            hwnd, 
-            preset="frost", 
-            vsync=False, 
-            quality=BlurQuality.PERFORMANCE, 
-            target_fps=60
-        )
+def run_glass_app(hwnd):
+    # Initialize the engine with performance settings
+    # The 'with' statement ensures shutdown() is called automatically
+    with BlurlyEngine(
+        hwnd, 
+        preset="frost", 
+        vsync=False, 
+        quality=BlurQuality.PERFORMANCE, 
+        target_fps=60
+    ) as glass:
         
-    def on_performance_mode_toggled(self, quality_mode):
-        # Dynamically change engine configuration
-        self.glass.set_config(quality=quality_mode)
-
-    def render_loop(self, x, y, width, height):
-        # Call this in your event loop or a timer
-        # render_at combines update_position + render for lower overhead
-        if self.glass.alive:
-            self.glass.render_at(x, y, width, height)
-
-    def cleanup(self):
-        # Clean up GPU resources when done
-        self.glass.shutdown()
+        while True:
+            # Emulate an event loop updating x, y, width, height
+            x, y, width, height = get_window_rect(hwnd)
+            
+            # render_at combines update_position + render for lower overhead
+            if glass.alive:
+                glass.render_at(x, y, width, height)
+                
+            time.sleep(1/60)
 ```
 
-## Native OS Integration
+## Window Integration
 
-Blurly goes beyond simple rendering by deeply integrating with Windows to provide a tear-free experience out of the box. Upon creation, `BlurlyEngine` **subclasses your window** to automatically manage its state during complex OS interactions:
+When working with Windows applications, dragging and resizing windows requires synchronizing the blur effect and updating positions. 
 
-- **`WM_ENTERSIZEMOVE`:** Automatically freezes desktop capture and disables VSync to prevent stuttering while the user is dragging or resizing the window.
-- **`WM_EXITSIZEMOVE`:** Restores standard capture and VSync once interaction completes.
-- **`WM_SIZE` / `WM_MOVE`:** Instantly renders the new frame and synchronously updates any attached `BlurlyOverlay`, providing a buttery smooth, tear-free resizing experience without needing boilerplate Python code.
+To provide a smooth experience, you should hook into standard OS events (like `WM_MOVE` and `WM_SIZE` or framework equivalents like PyQt's `moveEvent` and `resizeEvent`) and call `render_at()` or `update_position()` to keep the blur aligned with the screen. 
 
-This allows you to remove almost all manual window event hooks (like handling move/resize events) from your Python code when using standard framed windows.
+Additionally, you can use `set_freeze_capture(True)` during drag/resize events to skip desktop capture updates temporarily, which improves performance and reduces stuttering while the user is actively interacting with the window.
 
 ## Live Tweaking
 
@@ -88,32 +82,28 @@ engine.set_params(new_params)
 
 By default, Direct3D's `SwapChain::Present()` will overwrite any standard UI elements painted on the same window. To solve this, Blurly provides a toolkit-agnostic **layered rendering architecture**. This allows you to paint your custom UI on a separate overlay window while maintaining the blurred background in a host window.
 
-`BlurlyOverlay` manages the Z-order automatically (making the blur window the owner) and now **natively synchronizes** the overlay window's position with the blur host during OS-level interactions (like dragging and resizing) using Win32 subclassing.
+`BlurlyOverlay` helps manage this relationship. It provides a `sync()` method to align the overlay with the host window.
 
 ### Implementing an Overlay
 
 1. Create a **host window** to render the blur.
 2. Create a **transparent overlay window** to hold your UI.
 3. Pass their HWNDs to `BlurlyEngine` and `BlurlyOverlay`.
-4. Call `sync()` in your loop to keep the overlay aligned during standard programmatic movements.
+4. Hook into window move/resize events and call `sync()` to keep the overlay aligned.
 
 ```python
 from blurly import BlurlyEngine, BlurlyOverlay
 
-class LayeredGlassApp:
-    def __init__(self, blur_hwnd, overlay_hwnd):
-        # Initialize the engine
-        self.engine = BlurlyEngine(blur_hwnd, preset="frost")
-        
-        # Link the windows. The native engine automatically intercepts OS size/move 
-        # events to instantly sync the overlay without Python overhead!
-        self.glue = BlurlyOverlay(self.engine, blur_hwnd, overlay_hwnd)
+def run_layered_app(blur_hwnd, overlay_hwnd):
+    # Initialize the engine
+    with BlurlyEngine(blur_hwnd, preset="frost") as engine:
+        glue = BlurlyOverlay(engine, blur_hwnd, overlay_hwnd)
 
-    def render_loop(self):
-        # 1. Sync overlay window position, get physical rect
-        x, y, width, height = self.glue.sync()
-        
-        # 2. Render the background blur
-        if self.engine.alive:
-            self.engine.render_at(x, y, width, height)
+        while True:
+            # 1. Sync overlay window position, get physical rect
+            x, y, width, height = glue.sync()
+            
+            # 2. Render the background blur
+            if engine.alive:
+                engine.render_at(x, y, width, height)
 ```
