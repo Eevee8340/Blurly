@@ -564,6 +564,117 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#blurlyparams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BlurlyParams
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BlurlyParams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blurmode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BlurMode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blurquality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BlurQuality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blurlypreset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BlurlyPreset
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BlurlyPreset">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attributes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Properties
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#presets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PRESETS
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#get_presetname-str-blurlypreset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_preset(name: str) -&gt; BlurlyPreset
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#blurly-module" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -987,17 +1098,60 @@
 <li><strong><code>render_at(x: int, y: int, w: int, h: int) -&gt; None</code></strong>: Combined position update and render.</li>
 <li><strong><code>shutdown() -&gt; None</code></strong>: Release all GPU resources.</li>
 </ul>
-<p><em>Note: <code>BlurlyEngine</code> supports the context manager protocol (<code>with</code> statement) for automatic shutdown.</em></p>
+<p><em>Note: <code>BlurlyEngine</code> supports the context manager protocol (<code>with</code> statement) and implements the <code>__del__</code> destructor for automatic shutdown.</em></p>
 <h2 id="blurlyoverlay"><code>BlurlyOverlay</code></h2>
 <p>Helper class to manage transparent UI overlays on top of the blur window.</p>
 <h3 id="methods_1">Methods</h3>
 <ul>
-<li><strong><code>__init__(engine: BlurlyEngine, blur_hwnd: int, overlay_hwnd: int)</code></strong></li>
+<li><strong><code>__init__(engine: BlurlyEngine, blur_hwnd: int, overlay_hwnd: int)</code></strong>: Initialize the overlay manager.</li>
+<li><code>engine</code>: An active <code>BlurlyEngine</code> instance bound to <code>blur_hwnd</code>.</li>
+<li><code>blur_hwnd</code>: The HWND that <code>BlurlyEngine</code> renders into.</li>
+<li><code>overlay_hwnd</code>: The top-level HWND your UI toolkit painted its custom content into.</li>
 <li><strong><code>sync() -&gt; tuple[int, int, int, int]</code></strong>: Synchronize overlay position with blur host and return physical rect <code>(x, y, w, h)</code>.</li>
-<li><strong><code>raise_overlay() -&gt; None</code></strong>: Brings the overlay window to the top.</li>
+<li><strong><code>raise_overlay() -&gt; None</code></strong>: Brings the overlay window to the top. Useful after un-minimizing or when another window has covered the overlay unexpectedly.</li>
 <li><strong><code>get_blur_hwnd() -&gt; int</code></strong>: Returns the blur window handle.</li>
 <li><strong><code>get_overlay_hwnd() -&gt; int</code></strong>: Returns the overlay window handle.</li>
 </ul>
+<h2 id="blurlyparams"><code>BlurlyParams</code></h2>
+<p>Data class containing parameters controlling the glass effect.</p>
+<h3 id="fields">Fields</h3>
+<ul>
+<li><strong><code>refraction</code></strong>: <code>float</code> - Distortion intensity from the normal map. Range: <code>0.0</code> – <code>0.2</code>. Default: <code>0.04</code>.</li>
+<li><strong><code>blur_strength</code></strong>: <code>float</code> - Gaussian blur kernel radius in pixels. Range: <code>0.0</code> – <code>20.0</code>. Default: <code>5.0</code>.</li>
+<li><strong><code>blur_mode</code></strong>: <code>BlurMode</code> - Algorithm selection (<code>GAUSSIAN</code> or <code>FROST</code>). Default: <code>BlurMode.GAUSSIAN</code>.</li>
+<li><strong><code>frost_amount</code></strong>: <code>float</code> - Frost noise intensity (only used when <code>blur_mode=FROST</code>). Range: <code>0.0</code> – <code>1.0</code>. Default: <code>0.5</code>.</li>
+<li><strong><code>transparency</code></strong>: <code>float</code> - Strength of the tint color blending over the blur. Range: <code>0.0</code> – <code>1.0</code>. Default: <code>0.0</code>.</li>
+<li><strong><code>tint_color</code></strong>: <code>tuple[float, float, float]</code> - RGB tuple for coloring the glass. Default: <code>(1.0, 1.0, 1.0)</code>.</li>
+<li><strong><code>edge_highlight</code></strong>: <code>float</code> - Intensity of the bright edge overlay. Range: <code>0.0</code> – <code>1.0</code>. Default: <code>0.0</code>.</li>
+</ul>
+<h2 id="blurmode"><code>BlurMode</code></h2>
+<p><code>IntEnum</code> for blur algorithm selection.</p>
+<ul>
+<li><strong><code>GAUSSIAN</code></strong> (<code>0</code>)</li>
+<li><strong><code>FROST</code></strong> (<code>1</code>)</li>
+</ul>
+<h2 id="blurquality"><code>BlurQuality</code></h2>
+<p><code>IntEnum</code> for blur quality / performance trade-off.</p>
+<ul>
+<li><strong><code>PERFORMANCE</code></strong> (<code>0</code>): Uses a half-resolution intermediate render target, processing 4× fewer texels.</li>
+<li><strong><code>QUALITY</code></strong> (<code>1</code>): Full resolution.</li>
+</ul>
+<h2 id="blurlypreset"><code>BlurlyPreset</code></h2>
+<p>A named combination of a normal-map texture and glass parameters.</p>
+<h3 id="attributes">Attributes</h3>
+<ul>
+<li><strong><code>name</code></strong>: <code>str</code> - Human-readable display name.</li>
+<li><strong><code>normal_map</code></strong>: <code>str</code> - Filename of the <code>.raw</code> texture in <code>assets/presets/</code>.</li>
+<li><strong><code>params</code></strong>: <code>BlurlyParams</code> - Default <code>BlurlyParams</code> for this style.</li>
+</ul>
+<h3 id="properties">Properties</h3>
+<ul>
+<li><strong><code>normal_map_path</code></strong>: <code>str</code> - Absolute path to the <code>.raw</code> normal-map file.</li>
+</ul>
+<h2 id="presets"><code>PRESETS</code></h2>
+<p>A dictionary mapping preset names (e.g., <code>'ripples'</code>, <code>'frost'</code>, <code>'rain'</code>, <code>'brushed'</code>, <code>'grid'</code>) to their corresponding <code>BlurlyPreset</code> objects.</p>
+<h2 id="get_presetname-str-blurlypreset"><code>get_preset(name: str) -&gt; BlurlyPreset</code></h2>
+<p>Look up a built-in preset by key. Raises a <code>KeyError</code> if the preset name is not recognized.</p>
 <h2 id="blurly-module"><code>blurly</code> Module</h2>
 
 
